@@ -1,0 +1,10 @@
+<Project>
+    <ItemGroup>
+        <ProjectFile Include="ResourcesRepository/ResourcesRepository.csproj" />
+        <ProjectFile Include="ResourcesBackend/ResourcesBackend.csproj" />
+        <ProjectFile Include="ResourcesFrontend/ResourcesFrontend.csproj" />
+    </ItemGroup>
+    <Target Name="build">
+        <MSBuild Projects="@(ProjectFile)" />
+    </Target>
+</Project>
