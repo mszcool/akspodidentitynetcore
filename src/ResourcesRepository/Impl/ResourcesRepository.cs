@@ -16,7 +16,7 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
         internal string SubscriptionId { get; set; }
         internal string ResourceGroupName { get; set; }
 
-        internal ResourceManagementClient ResourceManagerClient { get; set; } = default(ResourceManagementClient);
+        internal RestClient RestClient { get; set; } = default(RestClient);
 
         internal ResourcesRepository(string subscriptionId, string resourceGroupName)
         {
@@ -32,11 +32,12 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
             Trace.TraceInformation($"ResourcesRepository.GetAll() called for {this.SubscriptionId} and {this.ResourceGroupName}.");
             
             // Ensure an instance of the ResourceManagementClient is available
-            CreateResourceManagementClient();
+            CreateRestClient();
+            var resMgr = new ResourceManagementClient(this.RestClient);
 
             // Try to get all resources for the resource group
             var filter = GetOdataQueryString();
-            var resourcesInGroup = await this.ResourceManagerClient.Resources.ListByResourceGroupAsync(this.ResourceGroupName, filter);
+            var resourcesInGroup = await resMgr.Resources.ListByResourceGroupAsync(this.ResourceGroupName, filter);
             var results = (from l in resourcesInGroup
                            select new Resource { Id = l.Id, Name = l.Name, Location = l.Location, Type = l.Type }).ToList();
             
@@ -52,10 +53,11 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
             if(string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Missing argument 'id'!");
 
             // Ensure an instance of the ResourceManagementClient is created
-            CreateResourceManagementClient();
+            CreateRestClient();
+            var resMgr = new ResourceManagementClient(this.RestClient);
 
             // Try to get the resource and return its details.
-            var res = await this.ResourceManagerClient.Resources.GetByIdAsync(id, this.ResourceManagerClient.ApiVersion);
+            var res = await resMgr.Resources.GetByIdAsync(id, resMgr.ApiVersion);
             var retVal = new Resource 
                          {
                              Id = res.Id,
@@ -82,22 +84,22 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
 
         #endregion
 
-        #region Private Methods
+        #region Private and protected methods for the class and derived classes
 
-        private void CreateResourceManagementClient()
+        protected void CreateRestClient()
         {
             // First try to acquire a token from the MSI endpoint
             var creds = default(AzureCredentials);
             var credentialFactory = new AzureCredentialsFactory();
 
             // If the ResourceManagementClient does exist, already, just return it.
-            if(this.ResourceManagerClient != default(ResourceManagementClient)) 
+            if(this.RestClient != default(RestClient)) 
             {
                 return;
             }
             else
             {
-                Trace.TraceInformation("ResourcesRepository.CreateResourceManagementClient() instantiating ResourceManagementClient...");
+                Trace.TraceInformation("ResourcesRepository.CreateRestClient() instantiating ResourceManagementClient...");
             }
             
             // Try acquiring a token (requires refactoring, learning new Fluent libraries as lots has changed from last time (a while ago))
@@ -138,9 +140,8 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
                                        .WithBaseUri("https://management.azure.com/")
                                        .WithCredentials(creds)
                                        .Build();
-            this.ResourceManagerClient = new ResourceManagementClient(restClient);
 
-            Trace.TraceInformation("ResourcesRepository.CreateResourceManagementClient() succeeded creating ResourceManagementClient!");
+            Trace.TraceInformation("ResourcesRepository.CreateRestClient() succeeded creating ResourceManagementClient!");
         }
 
         #endregion

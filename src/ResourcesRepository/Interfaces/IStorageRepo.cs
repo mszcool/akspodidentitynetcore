@@ -10,6 +10,6 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
 
     public interface IStorageRepo : IResourcesRepo 
     {
-        Task CreateAsync(string name, StorageType typeOfStorage);
+        Task CreateAsync(string name, string location, StorageType typeOfStorage, Sku storageSku);
     }
 }
