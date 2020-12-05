@@ -6,6 +6,9 @@ using Microsoft.Azure.Management.ResourceManager.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Models;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using Testee = MszCool.PodIdentityDemo.ResourcesRepository;
 
 namespace ResourcesRepository.Tests
 {
@@ -45,6 +48,9 @@ namespace ResourcesRepository.Tests
             }
             var resInGroup = await rmClient.Resources.ListByResourceGroupAsync(resourceGroupName);
             resourcesInGroup = new List<GenericResourceInner>(resInGroup);
+
+            // Set the environment variables needed for the test target
+            SetTesteeEnvironmentVariables();
         }
 
         [TestCleanup]
@@ -96,6 +102,34 @@ namespace ResourcesRepository.Tests
                                    .WithEnvironment(AzureEnvironment.AzureGlobalCloud)
                                    .WithCredentials(credentials)
                                    .Build();
+        }
+
+        private void SetTesteeEnvironmentVariables()
+        {
+            Environment.SetEnvironmentVariable(Testee.Constants.CLIENT_ID_ENV, restClient.Credentials.ClientId);
+            Environment.SetEnvironmentVariable(Testee.Constants.TENANT_ID_ENV, restClient.Credentials.TenantId);
+
+            var localFilePath = Environment.GetEnvironmentVariable(LOCAL_DEV_ENV);
+            if(string.IsNullOrEmpty(localFilePath))
+            {
+                Environment.SetEnvironmentVariable(Testee.Constants.CLIENT_SECRET_ENV, 
+                                                   Environment.GetEnvironmentVariable(CLIENT_SECRET_ENV));
+            }
+            else
+            {
+                // Read the JSON content from the file
+                using(var jReader = new JsonTextReader(new System.IO.StreamReader(localFilePath)))
+                {
+                    while(jReader.Read()) {
+                        // A bit of a hack to get it running for now
+                        // When the path is the property name, but the value not, then the current token is the actual value.
+                        if(jReader.Path.Equals("clientSecret") && !jReader.Value.ToString().Equals("clientSecret")) {
+                            Environment.SetEnvironmentVariable(Testee.Constants.CLIENT_SECRET_ENV, jReader.Value.ToString());
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         #endregion

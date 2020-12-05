@@ -34,6 +34,7 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
             // Ensure an instance of the ResourceManagementClient is available
             CreateRestClient();
             var resMgr = new ResourceManagementClient(this.RestClient);
+            resMgr.SubscriptionId = this.SubscriptionId;
 
             // Try to get all resources for the resource group
             var filter = GetOdataQueryString();
@@ -137,7 +138,7 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
 
             // Token acquired, successfully. Now configure the API Endpoint
             var restClient = RestClient.Configure()
-                                       .WithBaseUri("https://management.azure.com/")
+                                       .WithEnvironment(AzureEnvironment.AzureGlobalCloud)
                                        .WithCredentials(creds)
                                        .Build();
 
