@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/src/ResourcesBackend/ResourcesBackend.csproj",
+                "${workspaceFolder}/src/dirs.proj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -49,7 +49,11 @@
                 "/property:GenerateFullPaths=true"
             ],
             "options": {
-                "cwd": "${workspaceFolder}/src/ResourcesRepository.Tests"
+                "cwd": "${workspaceFolder}/src/ResourcesRepository.Tests",
+                "env": {
+                    "LOCAL_DEV": "ABSOLUTE_PATH_TO_YOUR_AUTH_FILE_CREATED_WITH_AZ_SP_CREATE_SDK_AUTH",
+                    "TEST_RESOURCE_GROUP": "YOUR_RG_NAME"
+                }
             },
             "problemMatcher": "$msCompile",
             "presentation": {
@@ -74,7 +78,9 @@
             "options": {
                 "cwd": "${workspaceFolder}/src/ResourcesRepository.Tests",
                 "env": {
-                    "VSTEST_HOST_DEBUG": "1"
+                    "VSTEST_HOST_DEBUG": "1",
+                    "LOCAL_DEV": "ABSOLUTE_PATH_TO_YOUR_AUTH_FILE_CREATED_WITH_AZ_SP_CREATE_SDK_AUTH",
+                    "TEST_RESOURCE_GROUP": "YOUR_RG_NAME"
                 }
             },
             "problemMatcher": "$msCompile",
