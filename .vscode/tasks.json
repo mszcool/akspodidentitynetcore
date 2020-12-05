@@ -37,6 +37,55 @@
                 "/consoleloggerparameters:NoSummary"
             ],
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "test-repository",
+            "command": "dotnet",
+            "type": "process",
+            "isBackground": true,
+            "group": "test",
+            "args": [
+                "test",
+                "/property:GenerateFullPaths=true"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/src/ResourcesRepository.Tests"
+            },
+            "problemMatcher": "$msCompile",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": false
+            }
+        },
+        {
+            "label": "test-repository-debug",
+            "command": "dotnet",
+            "type": "process",
+            "isBackground": true,
+            "group": "test",
+            "args": [
+                "test",
+                "/property:GenerateFullPaths=true"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/src/ResourcesRepository.Tests",
+                "env": {
+                    "VSTEST_HOST_DEBUG": "1"
+                }
+            },
+            "problemMatcher": "$msCompile",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": false
+            }
         }
     ]
 }
