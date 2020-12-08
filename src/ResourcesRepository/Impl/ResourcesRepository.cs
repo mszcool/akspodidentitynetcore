@@ -13,6 +13,8 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
 
     public class ResourcesRepository : IResourcesRepo
     {
+        private const string PROVIDER_SECTION = "providers";
+
         internal string SubscriptionId { get; set; }
         internal string ResourceGroupName { get; set; }
 
@@ -56,9 +58,20 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
             // Ensure an instance of the ResourceManagementClient is created
             CreateRestClient();
             var resMgr = new ResourceManagementClient(this.RestClient);
+            resMgr.SubscriptionId = this.SubscriptionId;
+
+            // First, need to retrieve the available API versions and pick the latest one
+            var idSplitted = id.Split("/");
+            var providerIdx = Array.IndexOf<string>(idSplitted, PROVIDER_SECTION);
+            var providerName = idSplitted[providerIdx + 1];
+            var providerResourceType = idSplitted[providerIdx + 2];
+            var providers = await resMgr.Providers.GetAsync(providerName);
+            var latestApiVersion = (from p in providers.ResourceTypes
+                                    where p.ResourceType == providerResourceType
+                                    select p).First().ApiVersions.Last();
 
             // Try to get the resource and return its details.
-            var res = await resMgr.Resources.GetByIdAsync(id, resMgr.ApiVersion);
+            var res = await resMgr.Resources.GetByIdAsync(id, latestApiVersion);
             var retVal = new Resource 
                          {
                              Id = res.Id,
@@ -66,11 +79,11 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
                              Location = res.Location,
                              Type = res.Type,
                              Properties = new Dictionary<string, string>() { 
-                                 { "Plan", res.Plan.Name },
-                                 { "Product", res.Plan.Product },
-                                 { "Sku", res.Sku.Name },
-                                 { "Size", res.Sku.Size },
-                                 { "Kind", res.Kind }
+                                 { "Plan", (res.Plan != null ? res.Plan.Name : "n/a") },
+                                 { "Product", (res.Plan != null ? res.Plan.Product : "n/a") },
+                                 { "Sku", (res.Sku != null ? res.Sku.Name : "n/a") },
+                                 { "Size", (res.Sku != null ? res.Sku.Size : "n/a") },
+                                 { "Kind", (res.Kind ?? "n/a") }
                              }
                          };
             return retVal;
@@ -104,43 +117,37 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
             }
             
             // Try acquiring a token (requires refactoring, learning new Fluent libraries as lots has changed from last time (a while ago))
-            try 
+            var clientId = Environment.GetEnvironmentVariable(Constants.CLIENT_ID_ENV);
+            var clientSecret = Environment.GetEnvironmentVariable(Constants.CLIENT_SECRET_ENV);
+            var tenantId = Environment.GetEnvironmentVariable(Constants.TENANT_ID_ENV);
+
+            // If not all details for a service principal are present, try MSI.
+            if(string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(clientSecret) || string.IsNullOrWhiteSpace(tenantId)) 
             {
-                Trace.TraceInformation("ResourceGroupRepository - acquire token from local MSI.");
-                creds = credentialFactory.FromMSI(
-                    new MSILoginInformation(MSIResourceType.VirtualMachine),
-                    AzureEnvironment.AzureGlobalCloud);
-            } 
-            catch (MSILoginException msiex)
-            {
-                Trace.TraceInformation($"Failed acquiring token with local MSI endpint: {msiex.Message}, trying with service principal from environment.");
+                Trace.TraceInformation($"Incomplete details for service principal in environment (clientId, clientSecret or tenantId misssing), trying managed service identity.");
                 try 
                 {
-                    var clientId = Environment.GetEnvironmentVariable(Constants.CLIENT_ID_ENV);
-                    var clientSecret = Environment.GetEnvironmentVariable(Constants.CLIENT_SECRET_ENV);
-                    var tenantId = Environment.GetEnvironmentVariable(Constants.TENANT_ID_ENV);
-
-                    if(string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(clientSecret) || string.IsNullOrWhiteSpace(tenantId)) 
-                    {
-                        var errorMsg = "Missing details for Service Principal based login in environment!";
-                        Trace.TraceError(errorMsg);
-                        throw new Exception(errorMsg);
-                    }
-
-                    creds = credentialFactory.FromServicePrincipal(clientId, clientSecret, tenantId, AzureEnvironment.AzureGlobalCloud);
+                    Trace.TraceInformation("ResourceGroupRepository - acquire token from local MSI.");
+                    creds = credentialFactory.FromMSI(new MSILoginInformation(MSIResourceType.VirtualMachine),
+                                                      AzureEnvironment.AzureGlobalCloud)
+                                             .WithDefaultSubscription(this.SubscriptionId);
                 } 
-                catch(Exception tokenex)
+                catch (MSILoginException msiex)
                 {
-                    Trace.TraceError($"Failed to acquire token for ResourceProviderRepository; {tokenex.Message}!");
-                    throw new Exception("Failed acquiring token!", tokenex);
+                    Trace.TraceError($"Failed to acquire token for ResourceProviderRepository with managed service identity: {msiex.Message}!");
+                    throw new Exception("Failed acquiring token!", msiex);
                 }
+            }
+            else 
+            {
+                creds = credentialFactory.FromServicePrincipal(clientId, clientSecret, tenantId, AzureEnvironment.AzureGlobalCloud);
             }
 
             // Token acquired, successfully. Now configure the API Endpoint
-            var restClient = RestClient.Configure()
-                                       .WithEnvironment(AzureEnvironment.AzureGlobalCloud)
-                                       .WithCredentials(creds)
-                                       .Build();
+            this.RestClient = RestClient.Configure()
+                                        .WithEnvironment(AzureEnvironment.AzureGlobalCloud)
+                                        .WithCredentials(creds)
+                                        .Build();
 
             Trace.TraceInformation("ResourcesRepository.CreateRestClient() succeeded creating ResourceManagementClient!");
         }

@@ -51,8 +51,9 @@
             "options": {
                 "cwd": "${workspaceFolder}/src/ResourcesRepository.Tests",
                 "env": {
-                    "LOCAL_DEV": "ABSOLUTE_PATH_TO_YOUR_AUTH_FILE_CREATED_WITH_AZ_SP_CREATE_SDK_AUTH",
-                    "TEST_RESOURCE_GROUP": "YOUR_RG_NAME"
+                    "LOCAL_DEV": "PATH_TO_YOUR_CREDENTIALS_FILE_GOES_HERE",
+                    "TEST_SUBSCRIPTION_ID": "TARGET_SUBSCRIPTION_ID_TO_RUN_TEST_AGAINST",
+                    "TEST_RESOURCE_GROUP": "TARGET_RESOURCE_GROUP_TO_RUN_TEST_AGAINST"
                 }
             },
             "problemMatcher": "$msCompile",
@@ -79,8 +80,9 @@
                 "cwd": "${workspaceFolder}/src/ResourcesRepository.Tests",
                 "env": {
                     "VSTEST_HOST_DEBUG": "1",
-                    "LOCAL_DEV": "ABSOLUTE_PATH_TO_YOUR_AUTH_FILE_CREATED_WITH_AZ_SP_CREATE_SDK_AUTH",
-                    "TEST_RESOURCE_GROUP": "YOUR_RG_NAME"
+                    "LOCAL_DEV": "PATH_TO_YOUR_CREDENTIALS_FILE_GOES_HERE",
+                    "TEST_SUBSCRIPTION_ID": "TARGET_SUBSCRIPTION_ID_TO_RUN_TEST_AGAINST",
+                    "TEST_RESOURCE_GROUP": "TARGET_RESOURCE_GROUP_TO_RUN_TEST_AGAINST"
                 }
             },
             "problemMatcher": "$msCompile",
