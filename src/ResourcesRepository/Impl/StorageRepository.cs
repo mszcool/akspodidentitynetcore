@@ -29,6 +29,7 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
             // Ensure the RestClient is available and create the storage Management client
             CreateRestClient();
             var storageMgr = new StorageManagementClient(base.RestClient);
+            storageMgr.SubscriptionId = base.SubscriptionId;
 
             // Verify if the storage account does exist, already
             name = name.ToLower();
@@ -84,15 +85,16 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
             {
                 case Sku.Basic:
                     storageOptions.Kind = Kind.BlobStorage;
-                    storageOptions.Sku.Name = SkuName.StandardLRS;
+                    storageOptions.Sku = new SkuInner { Name = SkuName.StandardLRS };
+                    storageOptions.AccessTier = AccessTier.Hot;
                     break;
                 case Sku.Standard:
                     storageOptions.Kind = Kind.StorageV2;
-                    storageOptions.Sku.Name = SkuName.StandardZRS;
+                    storageOptions.Sku = new SkuInner { Name = SkuName.StandardZRS };
                     break;
                 case Sku.Premium:
                     storageOptions.Kind = Kind.StorageV2;
-                    storageOptions.Sku.Name = SkuName.StandardRAGRS;
+                    storageOptions.Sku = new SkuInner { Name = SkuName.StandardRAGRS };
                     break;
             }
 

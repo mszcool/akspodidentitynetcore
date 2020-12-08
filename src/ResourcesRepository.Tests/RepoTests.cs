@@ -77,7 +77,7 @@ namespace ResourcesRepository.Tests
         #region TestMethods
 
         [TestMethod]
-        public void GetAllResourcesInGroupTest()
+        public async Task GetAllResourcesInGroupTest()
         {
             // Instantiate the tested calss
             TestContext.WriteLine($"Creating ResourcesRepository for {this.subscriptionId}...");
@@ -86,9 +86,7 @@ namespace ResourcesRepository.Tests
 
             // Get the resources in the resource group
             TestContext.WriteLine($"Getting resources from resource group {this.resourceGroupName}...");
-            var testExecTask = repoToTest.GetAllAsync();
-            testExecTask.Wait();
-            var resourcesAsIs = testExecTask.Result;
+            var resourcesAsIs = await repoToTest.GetAllAsync();
 
             // It should return not null all the time and the number of resources should be equal to what the test determined in its initialization.
             TestContext.WriteLine("Test assertions...");
@@ -111,7 +109,7 @@ namespace ResourcesRepository.Tests
         }
 
         [TestMethod]
-        public void GetSpecificResourceInGroupTest()
+        public async Task GetSpecificResourceInGroupTest()
         {
             // Instantiate the tested calss
             TestContext.WriteLine($"Creating ResourcesRepository for {this.subscriptionId}...");
@@ -123,9 +121,9 @@ namespace ResourcesRepository.Tests
             foreach(var resourceExpected in this.resourcesInGroup)
             {
                 TestContext.WriteLine($"- Getting resource {resourceExpected.Id}...");
-                var testTaskExec = repoToTest.GetByIdAsync(resourceExpected.Id);
-                testTaskExec.Wait();
-                var resourceAsIs = testTaskExec.Result;
+
+                // Execute the method to test
+                var resourceAsIs = await repoToTest.GetByIdAsync(resourceExpected.Id);
 
                 // The resource should have been found
                 TestContext.WriteLine($"- Assertions for resource {resourceExpected.Id}...");
@@ -134,6 +132,42 @@ namespace ResourcesRepository.Tests
                 Assert.AreEqual(resourceExpected.Name, resourceAsIs.Name, true);
                 Assert.AreEqual(resourceExpected.Location, resourceAsIs.Location, true);
             }
+
+            TestContext.WriteLine("Succeeded!");
+        }
+
+        [TestMethod]
+        public async Task CreateStorageAccountTest()
+        {
+            // Instantiate the tested class
+            TestContext.WriteLine($"Creating StorageRepository for {this.subscriptionId}...");
+            var factory = new Testee.RepositoryFactory(this.subscriptionId, this.resourceGroupName);
+            var repoToTest = factory.CreateStorageRepo();
+
+            // Generate a unique name for the storage account
+            var uniqueId = (long)1;
+            foreach(byte b in Guid.NewGuid().ToByteArray())
+            {
+                uniqueId *= ((int)b + 1);
+            }
+            var uniqueName = string.Format("mszt{0:x}", uniqueId - DateTime.Now.Ticks);
+
+            // Try to create that storage account
+            TestContext.WriteLine($"Trying to create storage account in resource group {this.resourceGroupName}...");
+            await repoToTest.CreateAsync(uniqueName, this.resourceGroup.Location, Testee.StorageType.Blob, Testee.Sku.Basic);
+            // This is a bit of a hack, but good enough for this sample.
+            await Task.Delay(1*60*1000);
+
+            // Try to retrieve the storage account
+            TestContext.WriteLine("Trying to find storage account in resource group {this.resourceGroupName}...");
+            var rmClient = new ResourceManagementClient(this.restClient);
+            rmClient.SubscriptionId = this.subscriptionId;
+            var resources = await rmClient.Resources.ListByResourceGroupAsync(this.resourceGroupName);
+            var foundAccount = (from r in resources
+                                where r.Name == uniqueName
+                                   && r.Type == "Microsoft.Storage/storageAccounts"
+                                select r).FirstOrDefault();
+            Assert.IsNotNull(foundAccount);
 
             TestContext.WriteLine("Succeeded!");
         }
