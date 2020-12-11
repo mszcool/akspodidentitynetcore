@@ -2,15 +2,13 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
 {
     using System;
     using System.Linq;
-    using System.Security;
     using System.Diagnostics;
     using System.Threading.Tasks;
     using System.Collections.Generic;
-    using Microsoft.Rest.Azure.OData;
     using Microsoft.Azure.Management.Fluent;
+    using Microsoft.Azure.Management.Graph.RBAC;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
-    using Microsoft.Azure.Management.ResourceManager.Fluent.Models;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
 
     public class ResourcesRepository : IResourcesRepo
@@ -147,9 +145,9 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
 
             // Token acquired, successfully. Now configure the API Endpoint
             this.AzureMgmt = Azure.Configure()
-                                   .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
-                                   .Authenticate(creds)
-                                   .WithSubscription(this.SubscriptionId);
+                                  .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
+                                  .Authenticate(creds)
+                                  .WithSubscription(this.SubscriptionId);
 
             Trace.TraceInformation("ResourcesRepository.ConfigureAzure() succeeded creating fluent Azure Management Client!");
         }
