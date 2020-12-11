@@ -38,12 +38,9 @@ namespace ResourcesRepository.Tests
         [TestInitialize]
         public async Task PrepareForTests()
         {
-            // Get the needed baseline parameters
-            this.subscriptionId = Environment.GetEnvironmentVariable(TEST_SUBSCRIPTION_ID) ?? restClient.Credentials.DefaultSubscriptionId;
-            this.resourceGroupName = Environment.GetEnvironmentVariable(TEST_RG_NAME_ENV);
+            // Authentication and Azure RestClient creation
+            InitAzureEnvironment();
 
-            // Create the needed ResourceManagementClient based on RestClient and Auth
-            CreateRestClient();
             var rmClient = new ResourceManagementClient(this.restClient);
             rmClient.SubscriptionId = subscriptionId;
 
@@ -176,9 +173,13 @@ namespace ResourcesRepository.Tests
 
         #region Private Helpers
 
-        private void CreateRestClient()
+        private void InitAzureEnvironment()
         {
             var credentials = default(AzureCredentials);
+
+            // Read required environment variables
+            this.subscriptionId = Environment.GetEnvironmentVariable(TEST_SUBSCRIPTION_ID);
+            this.resourceGroupName = Environment.GetEnvironmentVariable(TEST_RG_NAME_ENV);
 
             // For local dev, rely on an auth file, otherwise on a service principal set in the environment of the build agent.
             var localAuthFile = Environment.GetEnvironmentVariable(LOCAL_DEV_ENV);
@@ -194,6 +195,11 @@ namespace ResourcesRepository.Tests
             {
                 // Create the file with "az ad sp create-for-rbac --sdk-auth"
                 credentials = credFactory.FromFile(localAuthFile);
+                
+                // Assign the default subscription ID if none has been provided in the environment
+                if(string.IsNullOrWhiteSpace(this.subscriptionId)) {
+                    this.subscriptionId = credentials.DefaultSubscriptionId;
+                }
             }
 
             // Create the rest client based on the authentication above.
