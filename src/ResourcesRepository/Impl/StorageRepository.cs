@@ -4,12 +4,10 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
     using System.Linq;
     using System.Diagnostics;
     using System.Threading.Tasks;
-    using System.Collections.Generic;
-    using Microsoft.Rest.Azure.OData;
     using Microsoft.Azure.Management.Storage.Fluent;
-    using Microsoft.Azure.Management.Storage.Fluent.Models;
-    using Microsoft.Azure.Management.Storage.Fluent.StorageAccount;
-    using Microsoft.Azure.Management.ResourceManager.Fluent.Models;
+    using Microsoft.Azure.Management.ResourceManager.Fluent;
+    using Azure.Identity;
+    using Azure.Storage.Files.DataLake;
 
     public class StorageRepository : ResourcesRepository, IStorageRepo
     {
@@ -27,14 +25,12 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
             if (string.IsNullOrWhiteSpace(location)) throw new ArgumentException($"Required parameter {nameof(location)} is missing!");
 
             // Ensure the RestClient is available and create the storage Management client
-            CreateRestClient();
-            var storageMgr = new StorageManagementClient(base.RestClient);
-            storageMgr.SubscriptionId = base.SubscriptionId;
+            base.ConfigureAzure();
 
             // Verify if the storage account does exist, already
             name = name.ToLower();
-            var isAvailable = await storageMgr.StorageAccounts.CheckNameAvailabilityAsync(name);
-            if (!isAvailable.NameAvailable.GetValueOrDefault())
+            var isAvailable = await base.AzureMgmt.StorageAccounts.CheckNameAvailabilityAsync(name);
+            if (isAvailable.IsAvailable.HasValue && !isAvailable.IsAvailable.Value)
             {
                 var notAvailableErrorMsg = $"Storage account name {name} is not available, anymore!";
                 Trace.TraceError(notAvailableErrorMsg);
@@ -45,11 +41,11 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
                 try
                 {
                     // The storage account is needed always AFAIK
-                    await CreateBlobStorageAsync(storageMgr, name, location, storageSku);
+                    await CreateBlobStorageAsync(name, location, storageSku);
                     if(typeOfStorage == StorageType.Datalake) 
                     {
                         // TODO: Change the hardcoded file system name
-                        await CreateDatalakeStorageAsync(name, "testFileSystem");
+                        await CreateDatalakeStorageAsync(name, "defaultfs");
                     }
                     Trace.TraceInformation("StorageRepository.CreateAsync() succeeded!");
                 }
@@ -65,51 +61,65 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
 
         #region Methods overridden from base class
 
-        protected override ODataQuery<GenericResourceFilter> GetOdataQueryString()
+        protected override bool GetResourceFilter(IGenericResource res)
         {
-            var ret = new ODataQuery<GenericResourceFilter>();
-            ret.SetFilter(f => f.ResourceType == "Microsoft.Storage/storageAccounts");
-            return ret;
+            return res.ResourceType == "Microsoft.Storage/storageAccounts";
         }
 
         #endregion
 
         #region Private Methods
 
-        private async Task CreateBlobStorageAsync(StorageManagementClient storageMgr, string name, string location, Sku storageSku)
+        private async Task CreateBlobStorageAsync(string name, string location, Sku storageSku)
         {
-            var storageOptions = new StorageAccountCreateParameters();
-            storageOptions.Kind = Kind.StorageV2;
-            storageOptions.Location = location;
+            Trace.TraceInformation($"Creating storage account {name} in location {location}...");
+
+            var sku = StorageAccountSkuType.Standard_LRS;
             switch (storageSku)
             {
                 case Sku.Basic:
-                    storageOptions.Kind = Kind.BlobStorage;
-                    storageOptions.Sku = new SkuInner { Name = SkuName.StandardLRS };
-                    storageOptions.AccessTier = AccessTier.Hot;
                     break;
                 case Sku.Standard:
-                    storageOptions.Kind = Kind.StorageV2;
-                    storageOptions.Sku = new SkuInner { Name = SkuName.StandardZRS };
+                    sku = StorageAccountSkuType.Standard_ZRS;
                     break;
                 case Sku.Premium:
-                    storageOptions.Kind = Kind.StorageV2;
-                    storageOptions.Sku = new SkuInner { Name = SkuName.StandardRAGRS };
+                    sku = StorageAccountSkuType.Standard_GRS;
                     break;
             }
 
-            await storageMgr.StorageAccounts.CreateAsync(
-                base.ResourceGroupName,
-                name,
-                storageOptions
-            );
+            // Create the storage account
+            var accountCreated = await base.AzureMgmt.StorageAccounts.Define(name)
+                                                                     .WithRegion(location)
+                                                                     .WithExistingResourceGroup(base.ResourceGroupName)
+                                                                     .WithSku(sku)
+                                                                     .WithGeneralPurposeAccountKindV2()
+                                                                     .CreateAsync();
+
+            Trace.TraceInformation($"Storage account submitted for {name}!");
         }
 
-        private Task CreateDatalakeStorageAsync(string name, string fileSystemName)
+        private async Task CreateDatalakeStorageAsync(string accountName, string fileSystemName)
         {
-            var httpClient = new System.Net.Http.HttpClient(RestClient.RootHttpHandler);
+            Trace.TraceInformation($"Creating ADLS Gen2 File System {fileSystemName} in account {accountName}...");
+
+            // Initialize the basic details needed for accessing the ADLS Gen2 Account.
+            var creds = default(Azure.Core.TokenCredential);
+            var adlsUri = $"https://{accountName}.dfs.core.windows.net";
+            if(base.CredentialsUseSp)
+            {
+                creds = new ClientSecretCredential(base.TenantId, base.ClientId, base.ClientSecret);
+            }
+            else
+            {
+                creds = new ManagedIdentityCredential();
+            }
+
+            // Create the data service client and then create the file system
+            var adlsClient = new DataLakeServiceClient(new Uri(adlsUri), creds);
+            var adlsFsClient = await adlsClient.CreateFileSystemAsync(fileSystemName);
+            await adlsFsClient.Value.CreateDirectoryAsync("defaultDirectory");
             
-            throw new NotImplementedException();
+            Trace.TraceInformation($"ADLS File System {fileSystemName} created!");
         }
 
         #endregion
