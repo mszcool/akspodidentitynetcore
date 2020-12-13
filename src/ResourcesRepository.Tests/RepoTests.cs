@@ -256,6 +256,8 @@ namespace ResourcesRepository.Tests
 
         private static string GenerateUniqueName()
         {
+            // Thanks to Mads Kristensen's blog :)
+            // https://www.madskristensen.net/blog/generate-unique-strings-and-numbers-in-c/
             var uniqueId = (long)1;
             foreach (byte b in Guid.NewGuid().ToByteArray())
             {
