@@ -15,6 +15,9 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
     {
         private const string PROVIDER_SECTION = "providers";
 
+        protected int RetryCount { get; private set; }
+        protected int SecondsIncreasePerRetry { get; private set;}
+
         protected IAzure AzureMgmt { get; private set; }
         protected bool CredentialsUseSp { get; private set; }
         protected string ClientId { get; private set; }
@@ -23,10 +26,13 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
         protected string SubscriptionId { get; private set; }
         protected string ResourceGroupName { get; private set; }
 
-        internal ResourcesRepository(string subscriptionId, string resourceGroupName)
+        internal ResourcesRepository(string subscriptionId, string resourceGroupName, int retryCount, int secondsIncreaseBetweenRetries)
         {
             this.SubscriptionId = subscriptionId;
             this.ResourceGroupName = resourceGroupName;
+
+            this.RetryCount = retryCount;
+            this.SecondsIncreasePerRetry = secondsIncreaseBetweenRetries;
 
             Trace.TraceInformation($"ResourceRepository(subscriptionId={this.SubscriptionId}, resourceGroupName={this.ResourceGroupName})");
         }
@@ -169,13 +175,44 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
                 throw new Exception($"Unable to retrieve role {roleName} for resource of scope {scope}!");
             }
 
-            var roleAssignmentId = Guid.NewGuid().ToString();
-            await this.AzureMgmt.AccessManagement.RoleAssignments.Define(roleAssignmentId)
-                                                                    .ForServicePrincipal(servicePrincipalName)
-                                                                    .WithRoleDefinition(roleDefinition.Id)
-                                                                    .WithScope(scope)
-                                                                    .CreateAsync();
+            await RetryActionAsync(async () => {
+                Trace.TraceInformation("- Attempt to create role assignment...");
+                var roleAssignmentId = Guid.NewGuid().ToString();
+                await this.AzureMgmt.AccessManagement.RoleAssignments.Define(roleAssignmentId)
+                                                                        .ForServicePrincipal(servicePrincipalName)
+                                                                        .WithRoleDefinition(roleDefinition.Id)
+                                                                        .WithScope(scope)
+                                                                        .CreateAsync();
+                Trace.TraceInformation("- Attempt succeeded!");
+            });
             Trace.TraceInformation($"Permissions created for identity for {scope}...");
+        }
+
+        protected async Task RetryActionAsync(Func<Task> a)
+        {
+            // Note: for production pruposes, I'd suggest using a framework such as Polly.
+            //       but for this sample I kept the implementation and dependencies as simple as possible.
+            int currentWaitSecs = this.SecondsIncreasePerRetry;
+            for(int currentRun = 0; currentRun < this.RetryCount; currentRun++)
+            {
+                try
+                {
+                    await a();
+                    break;
+                }
+                catch(Exception ex)
+                {
+                    if(currentRun == (this.RetryCount - 1))
+                    {
+                        throw new Exception($"Retry operation failed with {ex.Message}.", ex);
+                    }
+                    else
+                    {
+                        await Task.Delay(currentWaitSecs * 1000);
+                        currentWaitSecs += SecondsIncreasePerRetry;
+                    }
+                }
+            }
         }
 
         #endregion

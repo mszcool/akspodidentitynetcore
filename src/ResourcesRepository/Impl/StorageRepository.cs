@@ -13,8 +13,8 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
     {
         protected const string STORAGE_DATA_OWNER_ROLE = "Storage Blob Data Owner";
 
-        public StorageRepository(string subscriptionId, string resourceGroupName)
-        : base(subscriptionId, resourceGroupName)
+        public StorageRepository(string subscriptionId, string resourceGroupName, int retryCount, int secondsIncreaseBetweenRetries)
+        : base(subscriptionId, resourceGroupName, retryCount, secondsIncreaseBetweenRetries)
         {
         }
 
@@ -118,7 +118,7 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
         {
             Trace.TraceInformation($"Creating ADLS Gen2 File System {fileSystemName} in account {accountCreated.Name}...");
 
-            // Initialize the basic details needed for accessing the ADLS Gen2 Account.
+            // Create the basic parameters and the ADLS client proxy
             var creds = default(Azure.Core.TokenCredential);
             var adlsUri = $"https://{accountCreated.Name}.dfs.core.windows.net";
             if (base.CredentialsUseSp)
@@ -129,11 +129,22 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
             {
                 creds = new ManagedIdentityCredential();
             }
-
-            // Create the data service client and then create the file system
             var adlsClient = new DataLakeServiceClient(new Uri(adlsUri), creds);
-            var adlsFsClient = await adlsClient.CreateFileSystemAsync(fileSystemName);
-            await adlsFsClient.Value.CreateDirectoryAsync(defaultFolderName);
+
+            // Create the file system with retry logic, should work on first attempt.
+            await RetryActionAsync(async () => {
+                Trace.TraceInformation("- Attempt to create file system...");
+                var adlsFsClient = await adlsClient.CreateFileSystemAsync(fileSystemName);
+                Trace.TraceInformation("- Attempt succeeded!");
+            });
+
+            // Creating the folder did require serveral retries until permissions propagated, correctly.
+            await RetryActionAsync(async () => {
+                Trace.TraceInformation("- Attempt to create folder.");
+                var adlsFsClient = adlsClient.GetFileSystemClient(fileSystemName);
+                await adlsFsClient.CreateDirectoryAsync(defaultFolderName);
+                Trace.TraceInformation("- Attempt succeeded!");
+            });
 
             Trace.TraceInformation($"ADLS File System {fileSystemName} created!");
         }
