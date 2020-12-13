@@ -152,6 +152,32 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
             Trace.TraceInformation("ResourcesRepository.ConfigureAzure() succeeded creating fluent Azure Management Client!");
         }
 
+        protected async Task AssignPermissions(string scope, string servicePrincipalName, string roleName)
+        {
+            Trace.TraceInformation($"Assigning role {roleName} to identity {servicePrincipalName} to scope {scope}...");
+
+            // Requires the following permissions in RBAC (Contributor is not sufficient)!
+            // "actions": [
+            //     "Microsoft.Authorization/permissions/read",
+            //     "Microsoft.Authorization/roleAssignments/read",
+            //     "Microsoft.Authorization/roleAssignments/write",
+            //     "Microsoft.Authorization/roleAssignments/delete",
+            //     "Microsoft.Authorization/operations/read"
+            // ],
+            var roleDefinition = await this.AzureMgmt.AccessManagement.RoleDefinitions.GetByScopeAndRoleNameAsync(scope, roleName);
+            if(roleDefinition == null) {
+                throw new Exception($"Unable to retrieve role {roleName} for resource of scope {scope}!");
+            }
+
+            var roleAssignmentId = Guid.NewGuid().ToString();
+            await this.AzureMgmt.AccessManagement.RoleAssignments.Define(roleAssignmentId)
+                                                                    .ForServicePrincipal(servicePrincipalName)
+                                                                    .WithRoleDefinition(roleDefinition.Id)
+                                                                    .WithScope(scope)
+                                                                    .CreateAsync();
+            Trace.TraceInformation($"Permissions created for identity for {scope}...");
+        }
+
         #endregion
     }
 }

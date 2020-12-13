@@ -74,6 +74,8 @@
             "group": "test",
             "args": [
                 "test",
+                "--filter",
+                "CreateAdlsStorageAccountTest",
                 "/property:GenerateFullPaths=true"
             ],
             "options": {

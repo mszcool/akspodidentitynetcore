@@ -1,0 +1,23 @@
+{
+    "properties": {
+        "roleName": "DevTest.AksPodIdTests.PrivilegedIdentities",
+        "description": "Some permissions needed by a privileged identity supposed to manage resources.",
+        "assignableScopes": [
+            "/subscriptions/a15981b9-659d-49b8-958a-3cd38943b2fe"
+        ],
+        "permissions": [
+            {
+                "actions": [
+                    "Microsoft.Authorization/permissions/read",
+                    "Microsoft.Authorization/roleAssignments/read",
+                    "Microsoft.Authorization/roleAssignments/write",
+                    "Microsoft.Authorization/roleAssignments/delete",
+                    "Microsoft.Authorization/operations/read"
+                ],
+                "notActions": [],
+                "dataActions": [],
+                "notDataActions": []
+            }
+        ]
+    }
+}

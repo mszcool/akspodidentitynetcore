@@ -165,7 +165,7 @@ namespace ResourcesRepository.Tests
 
             // Try to create that storage account
             TestContext.WriteLine($"Trying to create ADLS storage account in resource group {this.resourceGroupName}...");
-            await repoToTest.CreateAsync(uniqueName, this.resourceGroup.RegionName, Testee.StorageType.Datalake, Testee.Sku.Standard, "azure-cli-2020-12-05-20-10-11");
+            await repoToTest.CreateAsync(uniqueName, this.resourceGroup.RegionName, Testee.StorageType.Datalake, Testee.Sku.Standard, "http://azure-cli-2020-12-05-20-10-11");
 
             // Try to retrieve the storage account
             TestContext.WriteLine("Trying to find ADLS storage account in resource group {this.resourceGroupName}...");

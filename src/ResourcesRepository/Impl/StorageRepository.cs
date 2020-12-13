@@ -18,13 +18,18 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
         {
         }
 
-        public async Task CreateAsync(string name, string location, StorageType typeOfStorage, Sku storageSku, string identityToGiveAccess = "")
+        public async Task CreateAsync(string name, string location, StorageType typeOfStorage, Sku storageSku, string identityToGiveAccess = "", string defaultFileSystem = "defaultfs", string defaultFolderName = "default")
         {
             Trace.TraceInformation($"StorageRepository.CreateAsync() wants to create a storage account with name {name}!");
 
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException($"Required parameter {nameof(name)} is missing!");
             if (string.IsNullOrWhiteSpace(location)) throw new ArgumentException($"Required parameter {nameof(location)} is missing!");
-            if ((typeOfStorage == StorageType.Datalake) && string.IsNullOrWhiteSpace(identityToGiveAccess)) throw new ArgumentException($"When creating a storage account you also need to pass in a Service Principal name to give acces to the storage account to!");
+            if(typeOfStorage == StorageType.Datalake)
+            {
+                if(string.IsNullOrWhiteSpace(identityToGiveAccess)) throw new ArgumentException($"When creating a data lake storage account you also need to pass in a Service Principal name to give acces to the storage account to!");
+                if(string.IsNullOrWhiteSpace(defaultFileSystem)) throw new ArgumentException($"When creating a data lake storage account you also need to pass in default file system name for the file system to create!");
+                if(string.IsNullOrWhiteSpace(defaultFolderName)) throw new ArgumentException($"When creating a data lake storage account you also need to pass in default file system name for the default folder to be created in the default file system!");
+            }
 
             // Ensure the RestClient is available and create the storage Management client
             base.ConfigureAzure();
@@ -44,11 +49,17 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
                 {
                     // The storage account is needed always AFAIK
                     var accountCreated = await CreateBlobStorageAsync(name, location, storageSku);
-                    if(typeOfStorage == StorageType.Datalake) 
+                    // Assign permissions to the data plane
+                    if (!string.IsNullOrWhiteSpace(identityToGiveAccess))
                     {
-                        await CreateAdlsPermissions(accountCreated, identityToGiveAccess);
-                        // TODO: Change the hardcoded file system name
-                        await CreateDatalakeStorageAsync(name, "defaultfs");
+                        // First assign the required permissions
+                        Trace.TraceInformation($"Assigning permissions to identity for being able to access and modify storage account {accountCreated.Name}...");
+                        await base.AssignPermissions(accountCreated.Id, identityToGiveAccess, STORAGE_DATA_OWNER_ROLE);
+                    }
+                    // Create an ADLS file system if requested
+                    if (typeOfStorage == StorageType.Datalake)
+                    {
+                        await CreateDatalakeStorageAsync(accountCreated, defaultFileSystem, defaultFolderName, identityToGiveAccess);
                     }
                     Trace.TraceInformation("StorageRepository.CreateAsync() succeeded!");
                 }
@@ -96,40 +107,21 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
                                                            .WithExistingResourceGroup(base.ResourceGroupName)
                                                            .WithGeneralPurposeAccountKindV2()
                                                            .WithSku(sku);
-            
+
             // Create the account, trace the success message and return it.
             var accountCreated = await accountDef.CreateAsync();
             Trace.TraceInformation($"Storage account submitted for {name}!");
             return accountCreated;
         }
 
-        private async Task CreateAdlsPermissions(IStorageAccount account, string servicePrincipalName)
+        private async Task CreateDatalakeStorageAsync(IStorageAccount accountCreated, string fileSystemName, string defaultFolderName, string identityToGiveAccess)
         {
-            Trace.TraceInformation($"Assigning permissions to identity for being able to access and modify the ADLS file system to storage account {account.Name}...");
-
-            var storageRole = await base.AzureMgmt.AccessManagement.RoleDefinitions.GetByScopeAndRoleNameAsync(account.Id, STORAGE_DATA_OWNER_ROLE);
-            if(storageRole == null) {
-                throw new Exception($"Unable to retrieve role {STORAGE_DATA_OWNER_ROLE} for storage account {account.Name}!");
-            }
-
-            var roleAssignmentId = Guid.NewGuid().ToString();
-            await base.AzureMgmt.AccessManagement.RoleAssignments.Define(roleAssignmentId)
-                                                                 .ForServicePrincipal(servicePrincipalName)
-                                                                 .WithRoleDefinition(storageRole.Id)
-                                                                 .WithScope(account.Id)
-                                                                 .CreateAsync();
-
-            Trace.TraceInformation($"Permissions created for identity for {account.Name}...");
-        }
-
-        private async Task CreateDatalakeStorageAsync(string accountName, string fileSystemName)
-        {
-            Trace.TraceInformation($"Creating ADLS Gen2 File System {fileSystemName} in account {accountName}...");
+            Trace.TraceInformation($"Creating ADLS Gen2 File System {fileSystemName} in account {accountCreated.Name}...");
 
             // Initialize the basic details needed for accessing the ADLS Gen2 Account.
             var creds = default(Azure.Core.TokenCredential);
-            var adlsUri = $"https://{accountName}.dfs.core.windows.net";
-            if(base.CredentialsUseSp)
+            var adlsUri = $"https://{accountCreated.Name}.dfs.core.windows.net";
+            if (base.CredentialsUseSp)
             {
                 creds = new ClientSecretCredential(base.TenantId, base.ClientId, base.ClientSecret);
             }
@@ -141,8 +133,8 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
             // Create the data service client and then create the file system
             var adlsClient = new DataLakeServiceClient(new Uri(adlsUri), creds);
             var adlsFsClient = await adlsClient.CreateFileSystemAsync(fileSystemName);
-            await adlsFsClient.Value.CreateDirectoryAsync("defaultDirectory");
-            
+            await adlsFsClient.Value.CreateDirectoryAsync(defaultFolderName);
+
             Trace.TraceInformation($"ADLS File System {fileSystemName} created!");
         }
 
