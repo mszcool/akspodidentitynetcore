@@ -137,7 +137,7 @@ namespace ResourcesRepository.Tests
             var repoToTest = factory.CreateStorageRepo();
 
             // Generate a unique name for the storage account
-            string uniqueName = GenerateUniqueName();
+            string uniqueName = GenerateUniqueName("mszstbl");
 
             // Try to create that storage account
             TestContext.WriteLine($"Trying to create storage account in resource group {this.resourceGroupName}...");
@@ -161,7 +161,7 @@ namespace ResourcesRepository.Tests
             var repoToTest = factory.CreateStorageRepo();
 
             // Generate a unique name for the storage account
-             var uniqueName = GenerateUniqueName();
+             var uniqueName = GenerateUniqueName("mszstdl");
 
             // Try to create that storage account
             TestContext.WriteLine($"Trying to create ADLS storage account in resource group {this.resourceGroupName}...");
@@ -254,7 +254,7 @@ namespace ResourcesRepository.Tests
             }
         }
 
-        private static string GenerateUniqueName()
+        private static string GenerateUniqueName(string prefix)
         {
             // Thanks to Mads Kristensen's blog :)
             // https://www.madskristensen.net/blog/generate-unique-strings-and-numbers-in-c/
@@ -263,7 +263,7 @@ namespace ResourcesRepository.Tests
             {
                 uniqueId *= ((int)b + 1);
             }
-            var uniqueName = string.Format("mszt{0:x}", uniqueId - DateTime.Now.Ticks);
+            var uniqueName = string.Format("{0}{1:x}", prefix, uniqueId - DateTime.Now.Ticks);
             return uniqueName;
         }
 

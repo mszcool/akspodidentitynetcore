@@ -48,7 +48,7 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
                 try
                 {
                     // The storage account is needed always AFAIK
-                    var accountCreated = await CreateBlobStorageAsync(name, location, storageSku);
+                    var accountCreated = await CreateBlobStorageAsync(name, location, storageSku, (typeOfStorage == StorageType.Datalake));
                     // Assign permissions to the data plane
                     if (!string.IsNullOrWhiteSpace(identityToGiveAccess))
                     {
@@ -84,7 +84,7 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
 
         #region Private Methods
 
-        private async Task<IStorageAccount> CreateBlobStorageAsync(string name, string location, Sku storageSku)
+        private async Task<IStorageAccount> CreateBlobStorageAsync(string name, string location, Sku storageSku, bool withHns)
         {
             Trace.TraceInformation($"Creating storage account {name} in location {location}...");
 
@@ -106,7 +106,8 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
                                                            .WithRegion(location)
                                                            .WithExistingResourceGroup(base.ResourceGroupName)
                                                            .WithGeneralPurposeAccountKindV2()
-                                                           .WithSku(sku);
+                                                           .WithSku(sku)
+                                                           .WithHnsEnabled(withHns);
 
             // Create the account, trace the success message and return it.
             var accountCreated = await accountDef.CreateAsync();
