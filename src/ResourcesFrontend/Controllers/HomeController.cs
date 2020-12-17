@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Grpc.Net.Client;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using ResourcesFrontend.Models;
@@ -20,6 +21,18 @@ namespace ResourcesFrontend.Controllers
 
         public IActionResult Index()
         {
+            try {
+                var ch = GrpcChannel.ForAddress("https://localhost:5243");
+                var client = new GrpcGreeter.GreeterService.GreeterServiceClient(ch);
+
+                var response = client.SayHello(new GrpcGreeter.HelloRequest { Name = "Mario Szpuszta" });
+
+                ViewData["message"] = response.Message;
+            }
+            catch(Exception ex) {
+                ViewData["message"] = ex.Message;
+            }
+
             return View();
         }
 

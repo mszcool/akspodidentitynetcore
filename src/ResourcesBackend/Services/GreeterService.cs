@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace ResourcesBackend
 {
-    public class GreeterService : Greeter.GreeterBase
+    public class GreeterService : GrpcGreeter.GreeterService.GreeterServiceBase
     {
         private readonly ILogger<GreeterService> _logger;
         public GreeterService(ILogger<GreeterService> logger)
@@ -15,9 +15,9 @@ namespace ResourcesBackend
             _logger = logger;
         }
 
-        public override Task<HelloReply> SayHello(HelloRequest request, ServerCallContext context)
+        public override Task<GrpcGreeter.HelloResponse> SayHello(GrpcGreeter.HelloRequest request, ServerCallContext context)
         {
-            return Task.FromResult(new HelloReply
+            return Task.FromResult(new GrpcGreeter.HelloResponse
             {
                 Message = "Hello " + request.Name
             });

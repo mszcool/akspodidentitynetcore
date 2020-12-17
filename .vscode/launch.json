@@ -5,10 +5,9 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": ".NET Core Launch (web)",
+            "name": "Backend",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/src/ResourcesBackend/bin/Debug/net5.0/ResourcesBackend.dll",
             "args": [],
@@ -21,9 +20,25 @@
             },
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        },
+        {
+            "name": "Frontend",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/ResourcesFrontend/bin/Debug/net5.0/ResourcesFrontend.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/ResourcesFrontend",
+            "stopAtEntry": false,
+            "serverReadyAction":{
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+            },
+            "env": {
+
             },
             "sourceFileMap": {
-                "/Views": "${workspaceFolder}/Views"
+                "/Views": "${workspaceFolder}/src/ResourcesFrontend/Views"
             }
         },
         {
