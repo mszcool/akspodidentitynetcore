@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResourcesBackend", "Resourc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResourcesFrontend", "ResourcesFrontend\ResourcesFrontend.csproj", "{2AE7504E-992F-40EA-89E7-8A36141514F9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResourcesAppConfig", "ResourcesAppConfig\ResourcesAppConfig.csproj", "{133FD59D-4CE2-48DE-B49D-1BA2E57A017E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,5 +74,17 @@ Global
 		{2AE7504E-992F-40EA-89E7-8A36141514F9}.Release|x64.Build.0 = Release|Any CPU
 		{2AE7504E-992F-40EA-89E7-8A36141514F9}.Release|x86.ActiveCfg = Release|Any CPU
 		{2AE7504E-992F-40EA-89E7-8A36141514F9}.Release|x86.Build.0 = Release|Any CPU
+		{133FD59D-4CE2-48DE-B49D-1BA2E57A017E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{133FD59D-4CE2-48DE-B49D-1BA2E57A017E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{133FD59D-4CE2-48DE-B49D-1BA2E57A017E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{133FD59D-4CE2-48DE-B49D-1BA2E57A017E}.Debug|x64.Build.0 = Debug|Any CPU
+		{133FD59D-4CE2-48DE-B49D-1BA2E57A017E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{133FD59D-4CE2-48DE-B49D-1BA2E57A017E}.Debug|x86.Build.0 = Debug|Any CPU
+		{133FD59D-4CE2-48DE-B49D-1BA2E57A017E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{133FD59D-4CE2-48DE-B49D-1BA2E57A017E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{133FD59D-4CE2-48DE-B49D-1BA2E57A017E}.Release|x64.ActiveCfg = Release|Any CPU
+		{133FD59D-4CE2-48DE-B49D-1BA2E57A017E}.Release|x64.Build.0 = Release|Any CPU
+		{133FD59D-4CE2-48DE-B49D-1BA2E57A017E}.Release|x86.ActiveCfg = Release|Any CPU
+		{133FD59D-4CE2-48DE-B49D-1BA2E57A017E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

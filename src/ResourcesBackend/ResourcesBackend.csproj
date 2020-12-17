@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ResourcesRepository\ResourcesRepository.csproj" />
+    <ProjectReference Include="..\ResourcesAppConfig\ResourcesAppConfig.csproj" />
   </ItemGroup>
 
 </Project>

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Grpc.Net.Client;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using ResourcesFrontend.Models;
 
 namespace ResourcesFrontend.Controllers
@@ -13,10 +14,12 @@ namespace ResourcesFrontend.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly IOptions<ResourcesAppConfig.ResourcesConfig> _resourcesSettings;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, IOptions<ResourcesAppConfig.ResourcesConfig> resourcesSettings)
         {
             _logger = logger;
+            _resourcesSettings = resourcesSettings;
         }
 
         public IActionResult Index()
