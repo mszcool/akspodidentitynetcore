@@ -24,7 +24,13 @@ namespace ResourcesFrontend.Controllers
 
         public IActionResult Index()
         {
-            try {
+            return View();
+        }
+
+        public IActionResult Privacy()
+        {
+            try
+            {
                 var ch = GrpcChannel.ForAddress("https://localhost:5243");
                 var client = new GrpcGreeter.GreeterService.GreeterServiceClient(ch);
 
@@ -32,15 +38,11 @@ namespace ResourcesFrontend.Controllers
 
                 ViewData["message"] = response.Message;
             }
-            catch(Exception ex) {
+            catch (Exception ex)
+            {
                 ViewData["message"] = ex.Message;
             }
 
-            return View();
-        }
-
-        public IActionResult Privacy()
-        {
             return View();
         }
 

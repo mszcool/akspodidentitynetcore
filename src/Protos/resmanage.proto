@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+option csharp_namespace="MszCool.PodIdentityDemo.ResourcesRepository.GrpcResourceManagement";
+option java_package="com.mszcool.samples.akspodidentity.grpcresmanagement";
+option go_package="mszcoolakspodidentitygrpcresourcemanagement";
+
+package resmanagementdemo;
+
+service ResourcesService {
+    rpc Get(ResourceRequest) returns (ResourceResponse);
+    rpc CreateStorage(ResourceCreationRequest) returns (ResourceResponse);
+}
+
+enum SupportedResourceTypes {
+    GENERIC = 0;
+    STORAGE = 1;
+    DATALAKE = 2;
+}
+
+message ResourceEntity {
+    string id = 1;
+    string name = 2;
+    string location = 3;
+    string type = 4;
+    map<string, string> props = 5;
+}
+
+message ResourceRequest {
+    string id = 1;
+}
+
+message ResourceCreationRequest {
+    ResourceEntity entityDetails = 2;
+    SupportedResourceTypes resType = 1;
+}
+
+message ResourceResponse {
+    bool succeeded = 1;
+    string message = 2;
+    repeated ResourceEntity resources = 3;
+}

@@ -15,7 +15,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="..\Protos\greet.proto" Grpc="Client" />
+    <Protobuf Include="..\Protos\greet.proto" GrpcServices="Client" />
+    <Protobuf Include="..\Protos\resmanage.proto" GrpcServices="Client" />
   </ItemGroup>
 
   <PropertyGroup>
