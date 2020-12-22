@@ -1,9 +1,10 @@
-namespace MszCool.PodIdentityDemo.ResourcesRepository
+namespace MszCool.PodIdentityDemo.ResourcesRepository.Entities
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
 
-    public class Resource
+    public class ResourceEntity
     {
         public string Id { get; set; }
         public string Name { get; set; }

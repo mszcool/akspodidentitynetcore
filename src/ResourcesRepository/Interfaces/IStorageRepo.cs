@@ -1,4 +1,4 @@
-namespace MszCool.PodIdentityDemo.ResourcesRepository
+namespace MszCool.PodIdentityDemo.ResourcesRepository.Interfaces
 {
     using System.Threading.Tasks;
     

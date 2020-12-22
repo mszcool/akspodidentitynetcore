@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MszCool.PodIdentityDemo.ResourcesRepository.Entities;
+using MszCool.PodIdentityDemo.ResourcesRepository.Interfaces;
+using MszCool.PodIdentityDemo.ResourcesRepository.InternalImplementations;
 
 namespace MszCool.PodIdentityDemo.ResourcesRepository
 {
@@ -26,12 +28,12 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
 
         public IResourcesRepo CreateResourcesRepo()
         {
-            return new ResourcesRepository(this.SubscriptionId, this.ResourceGroupName, RetryCount, SecondsIncreaseBetweenRetries);
+            return new ResourcesRepositoryImpl(this.SubscriptionId, this.ResourceGroupName, RetryCount, SecondsIncreaseBetweenRetries);
         }
 
         public IStorageRepo CreateStorageRepo()
         {
-            return new StorageRepository(this.SubscriptionId, this.ResourceGroupName, RetryCount, SecondsIncreaseBetweenRetries);
+            return new StorageRepositoryImpl(this.SubscriptionId, this.ResourceGroupName, RetryCount, SecondsIncreaseBetweenRetries);
         }
     }
 }

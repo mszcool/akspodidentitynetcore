@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -86,7 +85,7 @@ namespace ResourcesRepository.Tests
             Assert.AreEqual(resourcesInGroup.Count, resourcesAsIs.Count);
 
             // Compare the resources found ordered by ID
-            resourcesAsIs.Sort(delegate (Testee.Resource a, Testee.Resource b)
+            resourcesAsIs.Sort(delegate (Testee.Entities.ResourceEntity a, Testee.Entities.ResourceEntity b)
             {
                 return string.Compare(a.Id, b.Id, StringComparison.InvariantCulture);
             });
@@ -141,7 +140,7 @@ namespace ResourcesRepository.Tests
 
             // Try to create that storage account
             TestContext.WriteLine($"Trying to create storage account in resource group {this.resourceGroupName}...");
-            await repoToTest.CreateAsync(uniqueName, this.resourceGroup.RegionName, Testee.StorageType.Blob, Testee.Sku.Basic);
+            await repoToTest.CreateAsync(uniqueName, this.resourceGroup.RegionName, Testee.Interfaces.StorageType.Blob, Testee.Sku.Basic);
 
             // Try to retrieve the storage account
             TestContext.WriteLine("Trying to find storage account in resource group {this.resourceGroupName}...");
@@ -165,7 +164,7 @@ namespace ResourcesRepository.Tests
 
             // Try to create that storage account
             TestContext.WriteLine($"Trying to create ADLS storage account in resource group {this.resourceGroupName}...");
-            await repoToTest.CreateAsync(uniqueName, this.resourceGroup.RegionName, Testee.StorageType.Datalake, Testee.Sku.Standard, "http://azure-cli-2020-12-05-20-10-11");
+            await repoToTest.CreateAsync(uniqueName, this.resourceGroup.RegionName, Testee.Interfaces.StorageType.Datalake, Testee.Sku.Standard, "http://azure-cli-2020-12-05-20-10-11");
 
             // Try to retrieve the storage account
             TestContext.WriteLine("Trying to find ADLS storage account in resource group {this.resourceGroupName}...");

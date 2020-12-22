@@ -1,4 +1,4 @@
-namespace MszCool.PodIdentityDemo.ResourcesRepository
+namespace MszCool.PodIdentityDemo.ResourcesRepository.InternalImplementations
 {
     using System;
     using System.Diagnostics;
@@ -8,12 +8,15 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
     using Microsoft.Azure.Management.Graph.RBAC.Fluent;
     using Azure.Identity;
     using Azure.Storage.Files.DataLake;
+    using MszCool.PodIdentityDemo.ResourcesRepository.Entities;
+    using MszCool.PodIdentityDemo.ResourcesRepository.Interfaces;
 
-    public class StorageRepository : ResourcesRepository, IStorageRepo
+
+    internal class StorageRepositoryImpl : ResourcesRepositoryImpl, IStorageRepo
     {
         protected const string STORAGE_DATA_OWNER_ROLE = "Storage Blob Data Owner";
 
-        public StorageRepository(string subscriptionId, string resourceGroupName, int retryCount, int secondsIncreaseBetweenRetries)
+        public StorageRepositoryImpl(string subscriptionId, string resourceGroupName, int retryCount, int secondsIncreaseBetweenRetries)
         : base(subscriptionId, resourceGroupName, retryCount, secondsIncreaseBetweenRetries)
         {
         }

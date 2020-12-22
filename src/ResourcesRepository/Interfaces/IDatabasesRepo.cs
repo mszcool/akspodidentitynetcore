@@ -1,8 +1,9 @@
-namespace MszCool.PodIdentityDemo.ResourcesRepository
+namespace MszCool.PodIdentityDemo.ResourcesRepository.Interfaces
 {
     using System;
     using System.Security;
     using System.Threading.Tasks;
+    using MszCool.PodIdentityDemo.ResourcesRepository.Interfaces;
 
     public interface IDatabaseRepo : IResourcesRepo
     {

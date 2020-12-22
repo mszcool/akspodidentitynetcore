@@ -1,4 +1,4 @@
-namespace MszCool.PodIdentityDemo.ResourcesRepository
+namespace MszCool.PodIdentityDemo.ResourcesRepository.InternalImplementations
 {
     using System;
     using System.Linq;
@@ -6,12 +6,13 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
     using System.Threading.Tasks;
     using System.Collections.Generic;
     using Microsoft.Azure.Management.Fluent;
-    using Microsoft.Azure.Management.Graph.RBAC;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
+    using MszCool.PodIdentityDemo.ResourcesRepository.Entities;
+    using MszCool.PodIdentityDemo.ResourcesRepository.Interfaces;
 
-    public class ResourcesRepository : IResourcesRepo
+    internal class ResourcesRepositoryImpl : IResourcesRepo
     {
         private const string PROVIDER_SECTION = "providers";
 
@@ -26,7 +27,7 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
         protected string SubscriptionId { get; private set; }
         protected string ResourceGroupName { get; private set; }
 
-        internal ResourcesRepository(string subscriptionId, string resourceGroupName, int retryCount, int secondsIncreaseBetweenRetries)
+        internal ResourcesRepositoryImpl(string subscriptionId, string resourceGroupName, int retryCount, int secondsIncreaseBetweenRetries)
         {
             this.SubscriptionId = subscriptionId;
             this.ResourceGroupName = resourceGroupName;
@@ -37,7 +38,7 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
             Trace.TraceInformation($"ResourceRepository(subscriptionId={this.SubscriptionId}, resourceGroupName={this.ResourceGroupName})");
         }
 
-        public async Task<List<Resource>> GetAllAsync()
+        public async Task<List<ResourceEntity>> GetAllAsync()
         {
             Trace.TraceInformation($"ResourcesRepository.GetAll() called for {this.SubscriptionId} and {this.ResourceGroupName}.");
             
@@ -48,14 +49,14 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
             var resourcesInGroup = await AzureMgmt.GenericResources.ListByResourceGroupAsync(this.ResourceGroupName);
             var results = (from l in resourcesInGroup
                            where this.GetResourceFilter(l)
-                           select new Resource { Id = l.Id, Name = l.Name, Location = l.RegionName, Type = l.Type }).ToList();
+                           select new ResourceEntity { Id = l.Id, Name = l.Name, Location = l.RegionName, Type = l.Type }).ToList();
             
             Trace.TraceInformation($"ResourcesRepository.GetAll() returning {results.Count} items!");
 
             return results;
         }
 
-        public async Task<Resource> GetByIdAsync(string id)
+        public async Task<ResourceEntity> GetByIdAsync(string id)
         {
             Trace.TraceInformation($"ResourcesRepository.GetAll() called for {this.SubscriptionId} and {this.ResourceGroupName} to get resource '{id}'.");
 
@@ -78,7 +79,7 @@ namespace MszCool.PodIdentityDemo.ResourcesRepository
 
             // Try to get the resource and return its details.
             var res = await AzureMgmt.GenericResources.GetByIdAsync(id, latestApiVersion);
-            var retVal = new Resource 
+            var retVal = new ResourceEntity
                          {
                              Id = res.Id,
                              Name = res.Name,
