@@ -4,20 +4,20 @@
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using MszCool.Samples.PodIdentityDemo.ResourcesAppConfig.Configuration;
+    using MszCool.Samples.PodIdentityDemo.ResourcesFrontend.Configuration;
     using MszCool.Samples.PodIdentityDemo.ResourcesFrontend.Models;
-    using System;
+    using MszCool.Samples.PodIdentityDemo.ResourcesRepository.Entities;
     using System.Diagnostics;
 
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly IOptions<ResourcesConfig> _resourcesSettings;
+        private readonly FrontendConfig _frontendSettings;
 
-        public HomeController(ILogger<HomeController> logger, IOptions<ResourcesConfig> resourcesSettings)
+        public HomeController(ILogger<HomeController> logger, IOptions<FrontendConfig> resourcesSettings)
         {
             _logger = logger;
-            _resourcesSettings = resourcesSettings;
+            _frontendSettings = resourcesSettings.Value;
         }
 
         public IActionResult Index()
@@ -25,20 +25,31 @@
             return View();
         }
 
+        public IActionResult NewResource()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult NewResource(ResourceEntity entity)
+        {
+            return RedirectToAction("Index");
+        }
+
         public IActionResult Privacy()
         {
             try
             {
-                var ch = GrpcChannel.ForAddress("https://localhost:5243");
+                var ch = GrpcChannel.ForAddress(_frontendSettings.EndpointsConfig.BackendServiceEndpointUri);
                 var client = new GrpcGreeter.GreeterService.GreeterServiceClient(ch);
 
                 var response = client.SayHello(new GrpcGreeter.HelloRequest { Name = "Mario Szpuszta" });
 
                 ViewData["message"] = response.Message;
             }
-            catch (Exception ex)
+            catch (Grpc.Core.RpcException ex)
             {
-                ViewData["message"] = ex.Message;
+                ViewData["message"] = ex.Status.Detail;
             }
 
             return View();

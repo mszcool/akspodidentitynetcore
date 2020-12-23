@@ -9,7 +9,7 @@
             "type": "coreclr",
             "request": "launch",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/src/ResourcesBackend/bin/Debug/net5.0/ResourcesBackend.dll",
+            "program": "${workspaceFolder}/src/ResourcesBackend/bin/Debug/net5.0/MszCool.Samples.PodIdentityDemo.ResourcesBackend.dll",
             "args": [],
             "cwd": "${workspaceFolder}/src/ResourcesBackend",
             "stopAtEntry": false,
@@ -26,7 +26,7 @@
             "name": "Frontend",
             "type": "coreclr",
             "request": "launch",
-            "program": "${workspaceFolder}/src/ResourcesFrontend/bin/Debug/net5.0/ResourcesFrontend.dll",
+            "program": "${workspaceFolder}/src/ResourcesFrontend/bin/Debug/net5.0/MszCool.Samples.PodIdentityDemo.ResourcesFrontend.dll",
             "args": [],
             "cwd": "${workspaceFolder}/src/ResourcesFrontend",
             "stopAtEntry": false,
