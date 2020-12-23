@@ -2,6 +2,7 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesFrontend
 {
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Configuration;
     
     public class Program
     {
@@ -12,6 +13,12 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesFrontend
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((hostingContext, config) => {
+                    var env = hostingContext.HostingEnvironment;
+                    if(env.IsDevelopment()) {
+                        config.AddUserSecrets<Program>();
+                    }
+                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
