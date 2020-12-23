@@ -1,9 +1,9 @@
 namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository
 {
-    public static class Constants
+    internal static class Constants
     {
-        public const string CLIENT_ID_ENV = "CLIENT_ID";
-        public const string CLIENT_SECRET_ENV = "CLIENT_SECRET";
-        public const string TENANT_ID_ENV = "TENANT_ID";
+        internal const string CLIENT_ID_ENV = "CLIENT_ID";
+        internal const string CLIENT_SECRET_ENV = "CLIENT_SECRET";
+        internal const string TENANT_ID_ENV = "TENANT_ID";
     }
 }

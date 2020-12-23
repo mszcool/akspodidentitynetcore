@@ -21,8 +21,10 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesFrontend
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // Loading and initalizing configuration
             var configSection = Configuration.GetSection(nameof(FrontendConfig));
-            if(configSection != null) {
+            if (configSection != null)
+            {
                 services.Configure<FrontendConfig>(configSection);
                 FrontendConfig = configSection.Get<FrontendConfig>();
             }
@@ -31,6 +33,15 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesFrontend
                 throw new System.Exception("Missing configuration for Frontend service!");
             }
 
+            // Loading and initializing the resouces repositories
+            var repoFactory = new ResourcesRepository.RepositoryFactory(
+                FrontendConfig.ResourcesConfig.SubscriptionId,
+                FrontendConfig.ResourcesConfig.ResourceGroupName
+            );
+            services.AddSingleton<ResourcesRepository.Interfaces.IResourcesRepo>(repoFactory.CreateResourcesRepo());
+            services.AddSingleton<ResourcesRepository.Interfaces.IStorageRepo>(repoFactory.CreateStorageRepo());
+
+            // ASP.NET Specifics
             services.AddControllersWithViews();
         }
 

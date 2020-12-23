@@ -52,9 +52,6 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.Tests
             {
                 return string.Compare(r1.Id, r2.Id, StringComparison.InvariantCultureIgnoreCase);
             });
-
-            // Set the environment variables needed for the test target
-            SetTesteeEnvironmentVariables();
         }
 
         [TestCleanup]
@@ -74,6 +71,7 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.Tests
             TestContext.WriteLine($"Creating ResourcesRepository for {this.subscriptionId}...");
             var factory = new Testee.RepositoryFactory(this.subscriptionId, this.resourceGroupName);
             var repoToTest = factory.CreateResourcesRepo();
+            SetTesteeEnvironmentVariables(factory);
 
             // Get the resources in the resource group
             TestContext.WriteLine($"Getting resources from resource group {this.resourceGroupName}...");
@@ -106,6 +104,7 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.Tests
             TestContext.WriteLine($"Creating ResourcesRepository for {this.subscriptionId}...");
             var factory = new Testee.RepositoryFactory(this.subscriptionId, this.resourceGroupName);
             var repoToTest = factory.CreateResourcesRepo();
+            SetTesteeEnvironmentVariables(factory);
 
             // Get the resources in the resource group
             TestContext.WriteLine($"Trying to get {resourcesInGroup.Count} resources from {this.resourceGroupName}...");
@@ -134,6 +133,7 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.Tests
             TestContext.WriteLine($"Creating StorageRepository for {this.subscriptionId}...");
             var factory = new Testee.RepositoryFactory(this.subscriptionId, this.resourceGroupName);
             var repoToTest = factory.CreateStorageRepo();
+            SetTesteeEnvironmentVariables(factory);
 
             // Generate a unique name for the storage account
             string uniqueName = GenerateUniqueName("mszstbl");
@@ -158,9 +158,10 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.Tests
             TestContext.WriteLine($"Creating ADLS StorageRepository for {this.subscriptionId}...");
             var factory = new Testee.RepositoryFactory(this.subscriptionId, this.resourceGroupName);
             var repoToTest = factory.CreateStorageRepo();
+            SetTesteeEnvironmentVariables(factory);
 
             // Generate a unique name for the storage account
-             var uniqueName = GenerateUniqueName("mszstdl");
+            var uniqueName = GenerateUniqueName("mszstdl");
 
             // Try to create that storage account
             TestContext.WriteLine($"Trying to create ADLS storage account in resource group {this.resourceGroupName}...");
@@ -215,20 +216,23 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.Tests
                                 .WithDefaultSubscription();
         }
 
-        private void SetTesteeEnvironmentVariables()
+        private void SetTesteeEnvironmentVariables(RepositoryFactory factory)
         {
             var localFilePath = Environment.GetEnvironmentVariable(LOCAL_DEV_ENV);
             if (string.IsNullOrEmpty(localFilePath))
             {
-                Environment.SetEnvironmentVariable(Testee.Constants.CLIENT_ID_ENV, 
-                                                   Environment.GetEnvironmentVariable(CLIENT_ID_ENV));
-                Environment.SetEnvironmentVariable(Testee.Constants.TENANT_ID_ENV, 
-                                                   Environment.GetEnvironmentVariable(CLIENT_SECRET_ENV));                
-                Environment.SetEnvironmentVariable(Testee.Constants.CLIENT_SECRET_ENV,
-                                                   Environment.GetEnvironmentVariable(CLIENT_SECRET_ENV));
+                factory.ConfigureEnvironment(
+                    Environment.GetEnvironmentVariable(CLIENT_ID_ENV),
+                    Environment.GetEnvironmentVariable(CLIENT_SECRET_ENV),
+                    Environment.GetEnvironmentVariable(TENANT_ID_ENV)
+                );
             }
             else
             {
+                var clientId = "";
+                var clientSecret = "";
+                var tenantId = "";
+
                 // Read the JSON content from the file
                 using (var jReader = new JsonTextReader(new System.IO.StreamReader(localFilePath)))
                 {
@@ -238,18 +242,21 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.Tests
                         // When the path is the property name, but the value not, then the current token is the actual value.
                         if (jReader.Path.Equals("clientSecret") && !jReader.Value.ToString().Equals("clientSecret"))
                         {
-                            Environment.SetEnvironmentVariable(Testee.Constants.CLIENT_SECRET_ENV, jReader.Value.ToString());
+                            clientSecret = jReader.Value.ToString();
                         }
                         else if(jReader.Path.Equals("clientId") && !jReader.Value.ToString().Equals("clientId"))
                         {
-                            Environment.SetEnvironmentVariable(Testee.Constants.CLIENT_ID_ENV, jReader.Value.ToString());
+                            clientId = jReader.Value.ToString();
                         }
                         else if(jReader.Path.Equals("tenantId") && !jReader.Value.ToString().Equals("tenantId")) 
                         {
-                            Environment.SetEnvironmentVariable(Testee.Constants.TENANT_ID_ENV, jReader.Value.ToString());
+                            tenantId = jReader.Value.ToString();
                         }
                     }
                 }
+
+                // Update the environment
+                factory.ConfigureEnvironment(clientId, clientSecret, tenantId);
             }
         }
 

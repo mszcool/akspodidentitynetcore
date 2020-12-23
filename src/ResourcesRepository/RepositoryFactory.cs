@@ -25,6 +25,13 @@
             this.SecondsIncreaseBetweenRetries = secondsIncreaseBetweenRetries;
         }
 
+        public void ConfigureEnvironment(string clientId, string clientSecret, string tenantId)
+        {
+            System.Environment.SetEnvironmentVariable(Constants.CLIENT_ID_ENV, clientId);
+            System.Environment.SetEnvironmentVariable(Constants.CLIENT_SECRET_ENV, clientSecret);
+            System.Environment.SetEnvironmentVariable(Constants.TENANT_ID_ENV, tenantId);
+        }
+
         public IResourcesRepo CreateResourcesRepo()
         {
             return new ResourcesRepositoryImpl(this.SubscriptionId, this.ResourceGroupName, RetryCount, SecondsIncreaseBetweenRetries);
