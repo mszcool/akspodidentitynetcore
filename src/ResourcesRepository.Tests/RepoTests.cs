@@ -1,14 +1,14 @@
+using Microsoft.Azure.Management.ResourceManager.Fluent;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Az = Microsoft.Azure.Management.Fluent;
-using Microsoft.Azure.Management.ResourceManager.Fluent;
-using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
-using Newtonsoft.Json;
-using Testee = MszCool.PodIdentityDemo.ResourcesRepository;
+using Testee = MszCool.Samples.PodIdentityDemo.ResourcesRepository;
 
-namespace ResourcesRepository.Tests
+namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.Tests
 {
     [TestClass]
     public class RepoTests

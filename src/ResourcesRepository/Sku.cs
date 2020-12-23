@@ -1,4 +1,4 @@
-namespace MszCool.PodIdentityDemo.ResourcesRepository
+namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository
 {
     public enum Sku
     {

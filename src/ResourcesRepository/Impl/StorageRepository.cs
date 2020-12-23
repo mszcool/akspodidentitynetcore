@@ -1,16 +1,13 @@
-namespace MszCool.PodIdentityDemo.ResourcesRepository.InternalImplementations
+namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.InternalImplementations
 {
+    using Azure.Identity;
+    using Azure.Storage.Files.DataLake;
+    using Microsoft.Azure.Management.Storage.Fluent;
+    using Microsoft.Azure.Management.ResourceManager.Fluent;
+    using MszCool.Samples.PodIdentityDemo.ResourcesRepository.Interfaces;
     using System;
     using System.Diagnostics;
     using System.Threading.Tasks;
-    using Microsoft.Azure.Management.Storage.Fluent;
-    using Microsoft.Azure.Management.ResourceManager.Fluent;
-    using Microsoft.Azure.Management.Graph.RBAC.Fluent;
-    using Azure.Identity;
-    using Azure.Storage.Files.DataLake;
-    using MszCool.PodIdentityDemo.ResourcesRepository.Entities;
-    using MszCool.PodIdentityDemo.ResourcesRepository.Interfaces;
-
 
     internal class StorageRepositoryImpl : ResourcesRepositoryImpl, IStorageRepo
     {

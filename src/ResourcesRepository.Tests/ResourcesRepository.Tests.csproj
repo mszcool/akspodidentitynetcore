@@ -2,8 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-
     <IsPackable>false</IsPackable>
+    <AssemblyName>MszCool.Samples.PodIdentityDemo.ResourcesRepository.Tests</AssemblyName>
+    <RootNamespace>MszCool.Samples.PodIdentityDemo.ResourcesRepository.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

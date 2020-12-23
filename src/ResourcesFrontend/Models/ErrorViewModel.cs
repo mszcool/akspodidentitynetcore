@@ -1,6 +1,4 @@
-using System;
-
-namespace ResourcesFrontend.Models
+namespace MszCool.Samples.PodIdentityDemo.ResourcesFrontend.Models
 {
     public class ErrorViewModel
     {

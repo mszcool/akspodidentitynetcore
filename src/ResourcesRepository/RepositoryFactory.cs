@@ -1,9 +1,8 @@
-﻿using MszCool.PodIdentityDemo.ResourcesRepository.Entities;
-using MszCool.PodIdentityDemo.ResourcesRepository.Interfaces;
-using MszCool.PodIdentityDemo.ResourcesRepository.InternalImplementations;
-
-namespace MszCool.PodIdentityDemo.ResourcesRepository
+﻿namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository
 {
+    using MszCool.Samples.PodIdentityDemo.ResourcesRepository.Interfaces;
+    using MszCool.Samples.PodIdentityDemo.ResourcesRepository.InternalImplementations;
+
     public enum SupportedRepos
     {
         Generic,

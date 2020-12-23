@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-
-namespace ResourcesBackend
+﻿namespace MszCool.Samples.PodIdentityDemo.ResourcesBackend
 {
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using MszCool.Samples.PodIdentityDemo.ResourcesAppConfig.Configuration;
+
     public class Startup
     {
         public Startup(IConfiguration configuration)
@@ -24,8 +21,8 @@ namespace ResourcesBackend
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<ResourcesAppConfig.ResourcesConfig>(
-                Configuration.GetSection(ResourcesAppConfig.ResourcesConfig.ConfigName)
+            services.Configure<ResourcesConfig>(
+                Configuration.GetSection(ResourcesConfig.ConfigName)
             );
             services.AddGrpc();
         }

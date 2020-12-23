@@ -1,16 +1,16 @@
-namespace MszCool.PodIdentityDemo.ResourcesRepository.InternalImplementations
+namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.InternalImplementations
 {
+    using Microsoft.Azure.Management.Fluent;
+    using Microsoft.Azure.Management.ResourceManager.Fluent;
+    using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+    using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
+    using MszCool.Samples.PodIdentityDemo.ResourcesRepository.Entities;
+    using MszCool.Samples.PodIdentityDemo.ResourcesRepository.Interfaces;
     using System;
     using System.Linq;
     using System.Diagnostics;
     using System.Threading.Tasks;
     using System.Collections.Generic;
-    using Microsoft.Azure.Management.Fluent;
-    using Microsoft.Azure.Management.ResourceManager.Fluent;
-    using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
-    using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
-    using MszCool.PodIdentityDemo.ResourcesRepository.Entities;
-    using MszCool.PodIdentityDemo.ResourcesRepository.Interfaces;
 
     internal class ResourcesRepositoryImpl : IResourcesRepo
     {

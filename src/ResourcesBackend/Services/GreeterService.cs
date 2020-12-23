@@ -1,20 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Grpc.Core;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MszCool.Samples.PodIdentityDemo.ResourcesAppConfig.Configuration;
+using System.Threading.Tasks;
 
-namespace ResourcesBackend
+namespace MszCool.Samples.PodIdentityDemo.ResourcesBackend
 {
     public class GreeterService : GrpcGreeter.GreeterService.GreeterServiceBase
     {
         private readonly ILogger<GreeterService> _logger;
-        private readonly IOptions<ResourcesAppConfig.ResourcesConfig> _config;
+        private readonly IOptions<ResourcesConfig> _config;
 
-        public GreeterService(ILogger<GreeterService> logger, IOptions<ResourcesAppConfig.ResourcesConfig> config)
+        public GreeterService(ILogger<GreeterService> logger, IOptions<ResourcesConfig> config)
         {
             _logger = logger;
             _config = config;

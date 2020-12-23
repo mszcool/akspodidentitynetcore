@@ -1,5 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <AssemblyName>MszCool.Samples.PodIdentityDemo.ResourcesFrontend</AssemblyName>
+    <RootNamespace>MszCool.Samples.PodIdentityDemo.ResourcesFrontend</RootNamespace>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\ResourcesRepository\ResourcesRepository.csproj" />
     <ProjectReference Include="..\ResourcesAppConfig\ResourcesAppConfig.csproj" />
@@ -18,9 +24,5 @@
     <Protobuf Include="..\Protos\greet.proto" GrpcServices="Client" />
     <Protobuf Include="..\Protos\resmanage.proto" GrpcServices="Client" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-  </PropertyGroup>
 
 </Project>

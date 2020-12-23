@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <AssemblyName>MszCool.Samples.PodIdentityDemo.ResourcesBackend</AssemblyName>
+    <RootNamespace>MszCool.Samples.PodIdentityDemo.ResourcesBackend</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

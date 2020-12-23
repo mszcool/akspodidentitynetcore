@@ -1,4 +1,4 @@
-namespace MszCool.PodIdentityDemo.ResourcesRepository.Entities
+namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.Entities
 {
     using System;
     using System.Collections.Generic;

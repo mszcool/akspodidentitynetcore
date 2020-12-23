@@ -1,6 +1,4 @@
-using System;
-
-namespace ResourcesAppConfig
+namespace MszCool.Samples.PodIdentityDemo.ResourcesAppConfig.Configuration
 {
     public class SecurityConfig
     {

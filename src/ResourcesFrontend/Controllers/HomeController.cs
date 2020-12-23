@@ -1,22 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using Grpc.Net.Client;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using ResourcesFrontend.Models;
-
-namespace ResourcesFrontend.Controllers
+﻿namespace MszCool.Samples.PodIdentityDemo.ResourcesFrontend.Controllers
 {
+    using Grpc.Net.Client;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
+    using MszCool.Samples.PodIdentityDemo.ResourcesAppConfig.Configuration;
+    using MszCool.Samples.PodIdentityDemo.ResourcesFrontend.Models;
+    using System;
+    using System.Diagnostics;
+
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly IOptions<ResourcesAppConfig.ResourcesConfig> _resourcesSettings;
+        private readonly IOptions<ResourcesConfig> _resourcesSettings;
 
-        public HomeController(ILogger<HomeController> logger, IOptions<ResourcesAppConfig.ResourcesConfig> resourcesSettings)
+        public HomeController(ILogger<HomeController> logger, IOptions<ResourcesConfig> resourcesSettings)
         {
             _logger = logger;
             _resourcesSettings = resourcesSettings;
