@@ -1,6 +1,7 @@
 ﻿namespace MszCool.Samples.PodIdentityDemo.ResourcesFrontend.Controllers
 {
     using Grpc.Net.Client;
+    using Microsoft.AspNetCore.Diagnostics;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -38,19 +39,11 @@
 
         public IActionResult Privacy()
         {
-            try
-            {
-                var ch = GrpcChannel.ForAddress(_frontendSettings.EndpointsConfig.BackendServiceEndpointUri);
-                var client = new GrpcGreeter.GreeterService.GreeterServiceClient(ch);
+            var ch = GrpcChannel.ForAddress(_frontendSettings.EndpointsConfig.BackendServiceEndpointUri);
+            var client = new GrpcGreeter.GreeterService.GreeterServiceClient(ch);
 
-                var response = client.SayHello(new GrpcGreeter.HelloRequest { Name = "Mario Szpuszta" });
-
-                ViewData["message"] = response.Message;
-            }
-            catch (Grpc.Core.RpcException ex)
-            {
-                ViewData["message"] = ex.Status.Detail;
-            }
+            var response = client.SayHello(new GrpcGreeter.HelloRequest { Name = "Mario Szpuszta" });
+            ViewData["message"] = response.Message;
 
             return View();
         }
@@ -58,7 +51,27 @@
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            var errMsg = TempData["errorMessage"];
+
+            // Get the original exception data from the exception handling path feature.
+            var exHandler = HttpContext.Features.Get<IExceptionHandlerPathFeature>();
+            if ( (exHandler?.Error != null) && (TempData["errorMessage"] == null) ) {
+                if(exHandler.Error is Grpc.Core.RpcException) {
+                    errMsg = ((Grpc.Core.RpcException)exHandler.Error).Status.Detail;
+                }
+                else {
+                    errMsg = exHandler.Error.Message;
+                }
+            }
+
+            // Construct the ErrorViewModel with available details and populate the Error view.
+            var evm = new ErrorViewModel {
+                                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+                                DetailedMessage = (errMsg != null && !string.IsNullOrWhiteSpace(errMsg.ToString())) 
+                                                   ? errMsg.ToString() 
+                                                   : "No further details are available."
+                            };
+            return View(evm);
         }
     }
 }
