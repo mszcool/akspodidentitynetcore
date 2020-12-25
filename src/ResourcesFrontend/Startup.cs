@@ -38,6 +38,12 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesFrontend
                 FrontendConfig.ResourcesConfig.SubscriptionId,
                 FrontendConfig.ResourcesConfig.ResourceGroupName
             );
+            if(!FrontendConfig.SecurityConfig.UseMSI) {
+                repoFactory.ConfigureEnvironment(
+                    FrontendConfig.SecurityConfig.ClientId,
+                    FrontendConfig.SecurityConfig.ClientSecret,
+                    FrontendConfig.SecurityConfig.TenantId);
+            }
             services.AddSingleton<ResourcesRepository.Interfaces.IResourcesRepo>(repoFactory.CreateResourcesRepo());
             services.AddSingleton<ResourcesRepository.Interfaces.IStorageRepo>(repoFactory.CreateStorageRepo());
 

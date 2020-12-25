@@ -16,14 +16,36 @@
         }
 
         public IConfiguration Configuration { get; }
+        private BackendConfig BackendConfig { get; set; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<BackendConfig>(
-                Configuration.GetSection(nameof(BackendConfig))
+            var configSection = Configuration.GetSection(nameof(BackendConfig));
+            if(configSection != null) {
+                services.Configure<BackendConfig>(configSection);
+                BackendConfig = configSection.Get<BackendConfig>();
+            }
+            else {
+                throw new System.Exception("Missing configuration for Backend service!");
+            }
+
+            // Loading and initializing the resouces repositories
+            var repoFactory = new ResourcesRepository.RepositoryFactory(
+                BackendConfig.ResourcesConfig.SubscriptionId,
+                BackendConfig.ResourcesConfig.ResourceGroupName
             );
+            if(!BackendConfig.SecurityConfig.UseMSI) {
+                repoFactory.ConfigureEnvironment(
+                    BackendConfig.SecurityConfig.ClientId,
+                    BackendConfig.SecurityConfig.ClientSecret,
+                    BackendConfig.SecurityConfig.TenantId);
+            }
+            services.AddSingleton<ResourcesRepository.Interfaces.IResourcesRepo>(repoFactory.CreateResourcesRepo());
+            services.AddSingleton<ResourcesRepository.Interfaces.IStorageRepo>(repoFactory.CreateStorageRepo());
+
+            // GRPC Stuff
             services.AddGrpc();
         }
 
