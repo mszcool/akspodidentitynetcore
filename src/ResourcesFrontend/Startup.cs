@@ -61,7 +61,7 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesFrontend
             }
             else
             {
-                app.UseExceptionHandler("/Home/Error");
+                app.UseExceptionHandler("/Error/Error");
                 app.UseHsts();
             }
             app.UseHttpsRedirection();
