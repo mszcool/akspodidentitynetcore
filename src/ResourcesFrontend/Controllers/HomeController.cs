@@ -8,22 +8,52 @@
     using MszCool.Samples.PodIdentityDemo.ResourcesFrontend.Configuration;
     using MszCool.Samples.PodIdentityDemo.ResourcesFrontend.Models;
     using MszCool.Samples.PodIdentityDemo.ResourcesRepository.Entities;
+    using MszCool.Samples.PodIdentityDemo.ResourcesRepository.Interfaces;
     using System.Diagnostics;
 
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
         private readonly FrontendConfig _frontendSettings;
+        private readonly IResourcesRepo _resourcesRepo;
 
-        public HomeController(ILogger<HomeController> logger, IOptions<FrontendConfig> resourcesSettings)
+        public HomeController(
+            ILogger<HomeController> logger, 
+            IOptions<FrontendConfig> resourcesSettings,
+            IResourcesRepo resourcesRepo)
         {
             _logger = logger;
             _frontendSettings = resourcesSettings.Value;
+            _resourcesRepo = resourcesRepo;
         }
 
         public IActionResult Index()
         {
-            return View();
+            var resourcesInGroup = _resourcesRepo.GetAllAsync().Result;
+
+            var resourcesViewModel = new ResourcesViewModel {
+                SubscriptionId = _frontendSettings.ResourcesConfig.SubscriptionId,
+                ResourceGroupName = _frontendSettings.ResourcesConfig.ResourceGroupName,
+                ResourcesInGroup = resourcesInGroup
+            };
+
+            return View(resourcesViewModel);
+        }
+
+        [HttpGet("{resourceId}")]
+        public IActionResult Details(string resourceId)
+        {
+            var idDecoded = System.Web.HttpUtility.UrlDecode(resourceId);
+
+            var resourceDetails = _resourcesRepo.GetByIdAsync(idDecoded).Result;
+
+            var resourceDetailsViewModel = new SingleResourceViewModel {
+                SubscriptionId = _frontendSettings.ResourcesConfig.SubscriptionId,
+                ResourceGroupName = _frontendSettings.ResourcesConfig.ResourceGroupName,
+                Resource = resourceDetails
+            };
+
+            return View(resourceDetailsViewModel);
         }
 
         public IActionResult NewResource()

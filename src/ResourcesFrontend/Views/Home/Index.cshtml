@@ -1,10 +1,38 @@
-﻿@{
+﻿@model MszCool.Samples.PodIdentityDemo.ResourcesFrontend.Models.ResourcesViewModel
+@{
     ViewData["Title"] = "Home Page";
+    Layout = "_Layout";
 }
 
 <div class="text-center">
     <h1>Welcome</h1>
-    <p>
-        Response from greeter service: <b>@ViewData["message"]</b>
-    </p>
 </div>
+
+<p>
+    <strong>Subscription ID:</strong>&nbsp;@Model.SubscriptionId<br />
+    <strong>Resource Group Name:</strong>&nbsp;@Model.ResourceGroupName<br />
+</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Location</th>
+            <th>Id</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var resourceEntity in Model.ResourcesInGroup)
+        {
+            <tr>
+                <td>
+                    <a asp-action="Details" asp asp-route-resourceId="@resourceEntity.Id">@resourceEntity.Name</a>
+                </td>
+                <td>@resourceEntity.Type</td>
+                <td>@resourceEntity.Location</td>
+                <td>@resourceEntity.Id</td>
+            </tr>
+        }
+    </tbody>
+</table>

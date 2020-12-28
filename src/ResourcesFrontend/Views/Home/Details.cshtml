@@ -1,0 +1,47 @@
+@model MszCool.Samples.PodIdentityDemo.ResourcesFrontend.Models.SingleResourceViewModel
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1>Resource Details</h1>
+</div>
+
+<p>
+    <strong>Subscription ID:</strong>&nbsp;@Model.SubscriptionId<br />
+    <strong>Resource Group Name:</strong>&nbsp;@Model.ResourceGroupName<br />
+</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Property</th>
+            <th>Value</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Name</td>
+            <td>@Model.Resource.Name</td>
+        </tr>
+        <tr>
+            <td>Type</td>
+            <td>@Model.Resource.Type</td>
+        </tr>
+        <tr>
+            <td>Location</td>
+            <td>@Model.Resource.Location</td>
+        </tr>
+        @foreach (var propKey in @Model.Resource.Properties.Keys)
+        {
+            <tr>
+                <td>@propKey</td>
+                <td>@Model.Resource.Properties[propKey]</td>
+            </tr>
+        }
+        <tr>
+            <td>Id</td>
+            <td>@Model.Resource.Id</td>
+        </tr>
+    </tbody>
+</table>
