@@ -21,8 +21,14 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="NewResource">New Resource</a>
+                        <li class="dropdown">
+                            <a class="nav-item" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">
+                                <span class="nav-label dropdown-toggle nav-link text-dark">New Resource</span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="text-dark" asp-action="Create" asp-route-resourceType="Datalake">Datalake Storage</a></li>
+                                <li><a class="text-dark" asp-action="Create" asp-route-resourceType="Blob">Blob Storage</a></li>
+                            </ul>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>

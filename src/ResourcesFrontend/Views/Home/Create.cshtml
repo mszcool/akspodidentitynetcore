@@ -1,0 +1,71 @@
+﻿@model MszCool.Samples.PodIdentityDemo.ResourcesFrontend.Models.ResourceToCreateViewModel
+@{
+    ViewData["Title"] = "New Resource";
+}
+
+<div class="text-left">
+    <h1>Creating a new @Model.FriendlyType:</h1>
+</div>
+
+<form asp-action="Create">
+    <table>
+        <thead>
+            <tr>
+                <th>Attribute</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><label asp-for="TryWithoutPrivilegedBackend" class="control-label"></label></td>
+                <td>
+                    <input asp-for="TryWithoutPrivilegedBackend" class="form-control"></input>
+                    <span asp-validation-for="ResourceName" class="text-danger"></span>
+                </td>
+            </tr>
+            <tr>
+                <td><label asp-for="ResourceName" class="control-label"></label></td>
+                <td>
+                    <input asp-for="ResourceName" class="form-control"></input>
+                    <span asp-validation-for="ResourceName" class="text-danger"></span>
+                </td>
+            </tr>
+            <tr>
+                <td><label asp-for="FriendlyType" class="control-label"></label></td>
+                <td>
+                    <input asp-for="FriendlyType" class="form-control"></input>
+                    <span asp-validation-for="FriendlyType" class="text-danger"></span>
+                </td>
+            </tr>
+            <tr>
+                <td><label asp-for="Location" class="control-label"></label></td>
+                <td>
+                    <input asp-for="Location" class="form-control"></input>
+                    <span asp-validation-for="Location" class="text-danger"></span>
+                </td>
+            </tr>
+            <tr>
+                <td><label asp-for="ResourceSku" class="control-label"></label></td>
+                <td>
+                    <input asp-for="ResourceSku" class="form-control"></input>
+                    <span asp-validation-for="ResourceSku" class="text-danger"></span>
+                </td>
+            </tr>
+            @if(Model.ResourcePropertiesForCreation != null) {
+                foreach (var propKey in Model.ResourcePropertiesForCreation.Keys)
+                {
+                    <tr>
+                        <td><label class="control-label">@propKey</label></td>
+                        <td>
+                            <input type="text" class="form-control" name="ResourcePropertiesForCreation[@propKey]"
+                                value="@Model.ResourcePropertiesForCreation[propKey]"></input>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+    <div class="form-group">
+        <input type="submit" value="Save" class="btn btn-primary" />
+    </div>
+</form>
