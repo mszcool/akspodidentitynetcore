@@ -40,132 +40,166 @@
 
         public IActionResult Index()
         {
-            var resourcesInGroup = _resourcesRepo.GetAllAsync().Result;
+            _logger.LogTrace("HomeController.Index entered.");
 
-            var resourcesViewModel = new ResourcesViewModel
-            {
-                SubscriptionId = _frontendSettings.ResourcesConfig.SubscriptionId,
-                ResourceGroupName = _frontendSettings.ResourcesConfig.ResourceGroupName,
-                ResourcesInGroup = resourcesInGroup
-            };
+            try {
+                var resourcesInGroup = _resourcesRepo.GetAllAsync().Result;
 
-            return View(resourcesViewModel);
+                var resourcesViewModel = new ResourcesViewModel
+                {
+                    SubscriptionId = _frontendSettings.ResourcesConfig.SubscriptionId,
+                    ResourceGroupName = _frontendSettings.ResourcesConfig.ResourceGroupName,
+                    ResourcesInGroup = resourcesInGroup
+                };
+
+                _logger.LogInformation($"Retrieved #{resourcesInGroup.Count} from {_frontendSettings.ResourcesConfig.ResourceGroupName} in {_frontendSettings.ResourcesConfig.SubscriptionId}.");
+
+                return View(resourcesViewModel);
+            }
+            finally {
+                _logger.LogTrace("HomeController.Index completed.");
+            }
         }
 
         [HttpGet("details/{resourceId}")]
         public IActionResult Details(string resourceId)
         {
-            var idDecoded = System.Web.HttpUtility.UrlDecode(resourceId);
+            _logger.LogTrace($"HomeController.Details for {resourceId} entered.");
+            try {
+                var idDecoded = System.Web.HttpUtility.UrlDecode(resourceId);
 
-            var resourceDetails = _resourcesRepo.GetByIdAsync(idDecoded).Result;
+                var resourceDetails = _resourcesRepo.GetByIdAsync(idDecoded).Result;
 
-            var resourceDetailsViewModel = new SingleResourceViewModel
-            {
-                SubscriptionId = _frontendSettings.ResourcesConfig.SubscriptionId,
-                ResourceGroupName = _frontendSettings.ResourcesConfig.ResourceGroupName,
-                Resource = resourceDetails
-            };
+                var resourceDetailsViewModel = new SingleResourceViewModel
+                {
+                    SubscriptionId = _frontendSettings.ResourcesConfig.SubscriptionId,
+                    ResourceGroupName = _frontendSettings.ResourcesConfig.ResourceGroupName,
+                    Resource = resourceDetails
+                };
 
-            return View(resourceDetailsViewModel);
+                return View(resourceDetailsViewModel);
+            }
+            finally {
+                _logger.LogTrace($"HomeController.Details for {resourceId} completed.");
+            }
         }
 
         public IActionResult Create([RegularExpression(@"^(Datalake|Blob)$")] string resourceType)
         {
-            var creationVm = new ResourceToCreateViewModel
-            {
-                TryWithoutPrivilegedBackend = false,
-                ResourceName = "",
-                FriendlyType = resourceType,
-                Location = "",
-                ResourceSku = MszCool.Samples.PodIdentityDemo.ResourcesRepository.Sku.Standard
-            };
-
-            // For a Datalake in this example a filesystem name and folder name can be passed in.
-            if (resourceType == "Datalake")
-            {
-                creationVm.ResourcePropertiesForCreation = new Dictionary<string, string> {
-                    { "Filesystem", "demofs" },
-                    { "Folder", "default" }
+            _logger.LogTrace($"HomeController.Create (GET) for {resourceType} entered.");
+            try {
+                var creationVm = new ResourceToCreateViewModel
+                {
+                    TryWithoutPrivilegedBackend = false,
+                    ResourceName = "",
+                    FriendlyType = resourceType,
+                    Location = "",
+                    ResourceSku = MszCool.Samples.PodIdentityDemo.ResourcesRepository.Sku.Standard
                 };
-            }
 
-            return View(creationVm);
+                // For a Datalake in this example a filesystem name and folder name can be passed in.
+                if (resourceType == "Datalake")
+                {
+                    creationVm.ResourcePropertiesForCreation = new Dictionary<string, string> {
+                        { "Filesystem", "demofs" },
+                        { "Folder", "default" }
+                    };
+                }
+
+                return View(creationVm);
+            }
+            finally {
+                _logger.LogTrace($"HomeController.Create (GET) for {resourceType} completed.");
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> Create([Bind] ResourceToCreateViewModel creationInfo)
         {
-            if (ModelState.IsValid)
-            {
-                // Trying without the privileged backend service should demonstrate the value of the concept of
-                // creating privileged, private microservices for control plane operations of an PaaS/SaaS platform
-                // that needs to provision resources when dynamically provisioning customer instances / tenants for their offering.
-                if (creationInfo.TryWithoutPrivilegedBackend)
+            _logger.LogTrace($"HomeController.Create (POST) with {creationInfo.ResourceName} entered.");
+            try {
+                if (ModelState.IsValid)
                 {
-                    switch (creationInfo.FriendlyType)
+                    // Trying without the privileged backend service should demonstrate the value of the concept of
+                    // creating privileged, private microservices for control plane operations of an PaaS/SaaS platform
+                    // that needs to provision resources when dynamically provisioning customer instances / tenants for their offering.
+                    if (creationInfo.TryWithoutPrivilegedBackend)
                     {
-                        case "Datalake":
-                            await _storageRepo.CreateAsync(
-                                            creationInfo.ResourceName,
-                                            creationInfo.Location,
-                                            StorageType.Datalake,
-                                            creationInfo.ResourceSku,
-                                            _frontendSettings.SecurityConfig.ClientId,
-                                            creationInfo.ResourcePropertiesForCreation["Filesystem"],
-                                            creationInfo.ResourcePropertiesForCreation["Folder"]);
-                            break;
+                        _logger.LogInformation($"HomeController.Create (POST) trying to create resource of type {creationInfo.FriendlyType} without backend-service.");
+                        switch (creationInfo.FriendlyType)
+                        {
+                            case "Datalake":
+                                await _storageRepo.CreateAsync(
+                                                creationInfo.ResourceName,
+                                                creationInfo.Location,
+                                                StorageType.Datalake,
+                                                creationInfo.ResourceSku,
+                                                _frontendSettings.SecurityConfig.ClientId,
+                                                creationInfo.ResourcePropertiesForCreation["Filesystem"],
+                                                creationInfo.ResourcePropertiesForCreation["Folder"]);
+                                break;
 
-                        case "Blob":
-                            await _storageRepo.CreateAsync(
-                                            creationInfo.ResourceName,
-                                            creationInfo.Location,
-                                            StorageType.Blob,
-                                            creationInfo.ResourceSku);
-                            break;
+                            case "Blob":
+                                await _storageRepo.CreateAsync(
+                                                creationInfo.ResourceName,
+                                                creationInfo.Location,
+                                                StorageType.Blob,
+                                                creationInfo.ResourceSku);
+                                break;
 
-                        default:
-                            throw new System.ArgumentException("Invalid resource type passed in. Please check valid types for this sample!");
-                    };
+                            default:
+                                throw new System.ArgumentException("Invalid resource type passed in. Please check valid types for this sample!");
+                        };
+                        _logger.LogInformation($"HomeController.Create (POST) created resource of type {creationInfo.FriendlyType} without backend-service, SUCCESSFULLY.");
+                    }
+                    else
+                    {
+                        _logger.LogInformation($"HomeController.Create (POST) trying to create resource of type {creationInfo.FriendlyType} WITH gRPC backend-service.");
+
+                        // Call the privileged backend service. In a setup in which the managed identity of this frontend web app
+                        // has reader permissions, only (which should be the case), only by calling the privileged backend service
+                        // the resource creation operations should succeed.
+    #pragma warning disable CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
+                        var requestMessage = new ResourceCreationRequest
+                        {
+                            Name = creationInfo.ResourceName,
+                            Location = creationInfo.Location,
+                            Sku = creationInfo.ResourceSku switch   // This here caused CS8524 - probably a compiler bug?
+                            {
+                                ResourcesRepository.Sku.Basic => SupportedSkus.Basic,
+                                ResourcesRepository.Sku.Standard => SupportedSkus.Standard,
+                                ResourcesRepository.Sku.Premium => SupportedSkus.Premium
+                            },
+                            ResType = creationInfo.FriendlyType switch
+                            {
+                                "Datalake" => SupportedResourceTypes.Datalake,
+                                "Blob" => SupportedResourceTypes.Storage,
+                                _ => SupportedResourceTypes.Generic
+                            }
+                        };
+    #pragma warning restore CS8524
+
+                        // Call the service for the resource creation request
+                        _logger.LogInformation($"Trying to call gRPC backend service on {_frontendSettings.EndpointsConfig.BackendServiceEndpointUri}...");
+                        var response = await _grpcResourcesBackend.CreateStorageAsync(requestMessage);
+                        _logger.LogInformation($"HomeController.Create (POST) calling gRPC backend-service completed, SUCCESSFULLY.");
+
+                        if(!response.Succeeded)
+                        {
+                            TempData["ErrorMessage"] = $"Failed creating resource through gRPC backend. Message returned from backend: {response.Message}";
+                            return RedirectToAction("Error", "Error");
+                        }
+                    }
+
+                    return RedirectToAction("Index");
                 }
                 else
                 {
-                    // Call the privileged backend service. In a setup in which the managed identity of this frontend web app
-                    // has reader permissions, only (which should be the case), only by calling the privileged backend service
-                    // the resource creation operations should succeed.
-#pragma warning disable CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
-                    var requestMessage = new ResourceCreationRequest
-                    {
-                        Name = creationInfo.ResourceName,
-                        Location = creationInfo.Location,
-                        Sku = creationInfo.ResourceSku switch   // This here caused CS8524 - probably a compiler bug?
-                        {
-                            ResourcesRepository.Sku.Basic => SupportedSkus.Basic,
-                            ResourcesRepository.Sku.Standard => SupportedSkus.Standard,
-                            ResourcesRepository.Sku.Premium => SupportedSkus.Premium
-                        },
-                        ResType = creationInfo.FriendlyType switch
-                        {
-                            "Datalake" => SupportedResourceTypes.Datalake,
-                            "Blob" => SupportedResourceTypes.Storage,
-                            _ => SupportedResourceTypes.Generic
-                        }
-                    };
-#pragma warning restore CS8524
-
-                    // Call the service for the resource creation request
-                    var response = await _grpcResourcesBackend.CreateStorageAsync(requestMessage);
-                    if(!response.Succeeded)
-                    {
-                        TempData["ErrorMessage"] = $"Failed creating resource through gRPC backend. Message returned from backend: {response.Message}";
-                        return RedirectToAction("Error", "Error");
-                    }
+                    return View(creationInfo);
                 }
-
-                return RedirectToAction("Index");
             }
-            else
-            {
-                return View(creationInfo);
+            finally {
+                _logger.LogTrace($"HomeController.Create (POST) with {creationInfo.ResourceName} completed.");
             }
         }
 

@@ -32,6 +32,8 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesBackend.Services
 
         public async override Task<GrpcResourceManagement.ResourceResponse> Get(GrpcResourceManagement.ResourceRequest request, ServerCallContext context)
         {
+            _logger.LogTrace("GRPC ResourcesService.Get entering...");
+
             // Create a skeleton for the response message.
             var responseMsg = new GrpcResourceManagement.ResourceResponse
             {
@@ -61,15 +63,20 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesBackend.Services
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "GRPC ResourcesService.Get ran into exception.");
+
                 responseMsg.Succeeded = false;
                 responseMsg.Message = $"Failed retrieving resources from {_config.ResourcesConfig.SubscriptionId} of group {_config.ResourcesConfig.ResourceGroupName} due to the following error: {ex.Message}";
             }
-            
+
+            _logger.LogTrace($"GRPC ResourcesService.Get exiting with responseMsg.Succeeded = {responseMsg.Succeeded} and responseMsg.Message = {responseMsg.Message}.");
             return responseMsg;
         }
 
         public async override Task<GrpcResourceManagement.ResourceResponse> CreateStorage(GrpcResourceManagement.ResourceCreationRequest request, ServerCallContext context)
         {
+            _logger.LogTrace("GRPC ResourcesService.CreateStorage entering...");
+
             // Craft a skeleton for a response message.
             var responseMsg = new GrpcResourceManagement.ResourceResponse
             {
@@ -124,10 +131,13 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesBackend.Services
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "GRPC ResourcesService.Create ran into exception.");
+
                 responseMsg.Succeeded = false;
                 responseMsg.Message = $"Failed creating a new {request.ResType.ToString()} in {_config.ResourcesConfig.ResourceGroupName} of subscription {_config.ResourcesConfig.SubscriptionId} due to the following error: {ex.Message}";
             }
             
+            _logger.LogTrace($"GRPC ResourcesService.Create exiting with responseMsg.Succeeded = {responseMsg.Succeeded} and responseMsg.Message = {responseMsg.Message}.");
             return responseMsg;
         }
 
