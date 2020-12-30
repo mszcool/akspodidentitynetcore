@@ -30,33 +30,119 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesBackend.Services
             _storageRepo = storageRepo;
         }
 
-        public override Task<GrpcResourceManagement.ResourceResponse> Get(GrpcResourceManagement.ResourceRequest request, ServerCallContext context)
+        public async override Task<GrpcResourceManagement.ResourceResponse> Get(GrpcResourceManagement.ResourceRequest request, ServerCallContext context)
         {
-            return Task.FromResult<GrpcResourceManagement.ResourceResponse>(CreateDummyResponse());
-        }
-
-        public override Task<GrpcResourceManagement.ResourceResponse> CreateStorage(GrpcResourceManagement.ResourceCreationRequest request, ServerCallContext context)
-        {
-            return Task.FromResult<GrpcResourceManagement.ResourceResponse>(CreateDummyResponse());
-        }
-
-        private GrpcResourceManagement.ResourceResponse CreateDummyResponse()
-        {
-            var entity = new GrpcResourceManagement.ResourceEntity {
-                Id = "dummy id",
-                Name = "dummy name",
-                Type = "dummy type",
-                Location = "dummy location"
+            // Create a skeleton for the response message.
+            var responseMsg = new GrpcResourceManagement.ResourceResponse
+            {
+                Succeeded = false,
+                Message = string.Empty
             };
-            entity.Props.Add("test", "dummy");
 
-            var result = new GrpcResourceManagement.ResourceResponse {
-                                    Succeeded = true,
-                                    Message = "dummy"
-                                };
-            result.Resources.Add(entity);
+            try
+            {
+                // Depending on whether an ID was passed in, get all or a specific resource.
+                if (string.IsNullOrWhiteSpace(request.Id))
+                {
+                    var resources = await _resourcesRepo.GetAllAsync();
+                    foreach (var r in resources)
+                    {
+                        responseMsg.Resources.Add(MapRepoResourceToGrpcResource(r));
+                    }
+                }
+                else
+                {
+                    var resource = await _resourcesRepo.GetByIdAsync(request.Id);
+                    responseMsg.Resources.Add(MapRepoResourceToGrpcResource(resource));
+                }
 
-            return result;
+                responseMsg.Succeeded = true;
+                responseMsg.Message = $"Retrieval succeeded for subscription {_config.ResourcesConfig.SubscriptionId} in group {_config.ResourcesConfig.ResourceGroupName}!";
+            }
+            catch (Exception ex)
+            {
+                responseMsg.Succeeded = false;
+                responseMsg.Message = $"Failed retrieving resources from {_config.ResourcesConfig.SubscriptionId} of group {_config.ResourcesConfig.ResourceGroupName} due to the following error: {ex.Message}";
+            }
+            
+            return responseMsg;
+        }
+
+        public async override Task<GrpcResourceManagement.ResourceResponse> CreateStorage(GrpcResourceManagement.ResourceCreationRequest request, ServerCallContext context)
+        {
+            // Craft a skeleton for a response message.
+            var responseMsg = new GrpcResourceManagement.ResourceResponse
+            {
+                Succeeded = false,
+                Message = string.Empty
+            };
+
+            try
+            {
+                // Some basic request message processing.
+                var fsName = request.Props.GetValueOrDefault("Filesystem", string.Empty);
+                var folderName = request.Props.GetValueOrDefault("Folder", string.Empty);
+                var repoSku = request.Sku switch
+                {
+                    GrpcResourceManagement.SupportedSkus.Basic => ResourcesRepository.Sku.Basic,
+                    _ => ResourcesRepository.Sku.Basic
+                };
+
+                // Try creating the resources.
+                switch (request.ResType)
+                {
+                    case GrpcResourceManagement.SupportedResourceTypes.Datalake:
+                        if (string.IsNullOrWhiteSpace(fsName) || string.IsNullOrWhiteSpace(folderName))
+                        {
+                            throw new ArgumentException("Both, Filesystem and Folder properties need to be passed with none-empty strings!");
+                        }
+
+                        await _storageRepo.CreateAsync(
+                            request.Name,
+                            request.Location,
+                            StorageType.Datalake,
+                            repoSku,
+                            _config.SecurityConfig.ClientId,
+                            fsName,
+                            folderName);
+                        break;
+
+                    case GrpcResourceManagement.SupportedResourceTypes.Storage:
+                        await _storageRepo.CreateAsync(
+                            request.Name,
+                            request.Location,
+                            StorageType.Blob,
+                            repoSku);
+                        break;
+
+                    default:
+                        throw new Exception("Unsupported resource type used in request!");
+                }
+
+                responseMsg.Succeeded = true;
+                responseMsg.Message = $"Successfully created {request.ResType} in {_config.ResourcesConfig.ResourceGroupName} of subscription {_config.ResourcesConfig.SubscriptionId}!";
+            }
+            catch (Exception ex)
+            {
+                responseMsg.Succeeded = false;
+                responseMsg.Message = $"Failed creating a new {request.ResType.ToString()} in {_config.ResourcesConfig.ResourceGroupName} of subscription {_config.ResourcesConfig.SubscriptionId} due to the following error: {ex.Message}";
+            }
+            
+            return responseMsg;
+        }
+
+        private GrpcResourceManagement.ResourceEntity MapRepoResourceToGrpcResource(ResourceEntity entity)
+        {
+            var g = new GrpcResourceManagement.ResourceEntity
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                Location = entity.Location,
+                Type = entity.Type
+            };
+            g.Props.Add(entity.Properties);
+
+            return g;
         }
     }
 }
