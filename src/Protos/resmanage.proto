@@ -17,6 +17,12 @@ enum SupportedResourceTypes {
     DATALAKE = 2;
 }
 
+enum SupportedSkus {
+    BASIC = 0;
+    STANDARD = 1;
+    PREMIUM = 2;
+}
+
 message ResourceEntity {
     string id = 1;
     string name = 2;
@@ -30,8 +36,10 @@ message ResourceRequest {
 }
 
 message ResourceCreationRequest {
-    ResourceEntity entityDetails = 2;
     SupportedResourceTypes resType = 1;
+    string name = 2;
+    string location = 3;
+    SupportedSkus sku = 4;
 }
 
 message ResourceResponse {

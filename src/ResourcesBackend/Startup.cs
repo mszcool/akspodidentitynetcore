@@ -7,6 +7,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using MszCool.Samples.PodIdentityDemo.ResourcesBackend.Configuration;
+    using MszCool.Samples.PodIdentityDemo.ResourcesBackend.Services;
 
     public class Startup
     {
@@ -62,6 +63,7 @@
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGrpcService<GreeterService>();
+                endpoints.MapGrpcService<ResourcesService>();
 
                 endpoints.MapGet("/", async context =>
                 {

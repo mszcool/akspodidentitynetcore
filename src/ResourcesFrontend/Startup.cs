@@ -51,6 +51,9 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesFrontend
             services.AddGrpcClient<GrpcGreeter.GreeterService.GreeterServiceClient>(opt => {
                 opt.Address = new System.Uri(FrontendConfig.EndpointsConfig.BackendServiceEndpointUri);
             });
+            services.AddGrpcClient<MszCool.Samples.PodIdentityDemo.ResourcesRepository.GrpcResourceManagement.ResourcesService.ResourcesServiceClient>(opt => {
+                opt.Address = new System.Uri(FrontendConfig.EndpointsConfig.BackendServiceEndpointUri);
+            });
 
             // ASP.NET Specifics
             services.AddControllersWithViews();
