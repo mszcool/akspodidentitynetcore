@@ -2,6 +2,7 @@ using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MszCool.Samples.PodIdentityDemo.ResourcesBackend.Configuration;
+using System;
 using System.Threading.Tasks;
 
 namespace MszCool.Samples.PodIdentityDemo.ResourcesBackend
@@ -21,7 +22,7 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesBackend
         {
             return Task.FromResult(new GrpcGreeter.HelloResponse
             {
-                Message = "Hello " + request.Name
+                Message = $"Hello {request.Name} on {DateTime.Now.ToString("yyyy-mm-dd HH:MM:ss")}!"
             });
         }
     }

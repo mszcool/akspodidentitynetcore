@@ -47,6 +47,11 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesFrontend
             services.AddSingleton<ResourcesRepository.Interfaces.IResourcesRepo>(repoFactory.CreateResourcesRepo());
             services.AddSingleton<ResourcesRepository.Interfaces.IStorageRepo>(repoFactory.CreateStorageRepo());
 
+            // Add the gRPC ResourcesBackend agent.
+            services.AddGrpcClient<GrpcGreeter.GreeterService.GreeterServiceClient>(opt => {
+                opt.Address = new System.Uri(FrontendConfig.EndpointsConfig.BackendServiceEndpointUri);
+            });
+
             // ASP.NET Specifics
             services.AddControllersWithViews();
         }

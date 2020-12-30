@@ -1,13 +1,11 @@
 ﻿namespace MszCool.Samples.PodIdentityDemo.ResourcesFrontend.Controllers
 {
-    using Grpc.Net.Client;
     using Microsoft.AspNetCore.Diagnostics;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using MszCool.Samples.PodIdentityDemo.ResourcesFrontend.Configuration;
     using MszCool.Samples.PodIdentityDemo.ResourcesFrontend.Models;
-    using MszCool.Samples.PodIdentityDemo.ResourcesRepository.Entities;
     using MszCool.Samples.PodIdentityDemo.ResourcesRepository.Interfaces;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
@@ -20,17 +18,20 @@
         private readonly FrontendConfig _frontendSettings;
         private readonly IResourcesRepo _resourcesRepo;
         private readonly IStorageRepo _storageRepo;
+        private GrpcGreeter.GreeterService.GreeterServiceClient _grpcGreeterClient;
 
         public HomeController(
             ILogger<HomeController> logger, 
             IOptions<FrontendConfig> resourcesSettings,
             IResourcesRepo resourcesRepo,
-            IStorageRepo storageRepo)
+            IStorageRepo storageRepo,
+            GrpcGreeter.GreeterService.GreeterServiceClient grpcGreeterClient)
         {
             _logger = logger;
             _frontendSettings = resourcesSettings.Value;
             _resourcesRepo = resourcesRepo;
             _storageRepo = storageRepo;
+            _grpcGreeterClient = grpcGreeterClient;
         }
 
         public IActionResult Index()
@@ -137,12 +138,8 @@
         {
             try
             {
-                var ch = GrpcChannel.ForAddress(_frontendSettings.EndpointsConfig.BackendServiceEndpointUri);
-                var client = new GrpcGreeter.GreeterService.GreeterServiceClient(ch);
-
-                var response = client.SayHello(new GrpcGreeter.HelloRequest { Name = "Mario Szpuszta" });
+                var response = _grpcGreeterClient.SayHello(new GrpcGreeter.HelloRequest { Name = "Mario Szpuszta" });
                 ViewData["message"] = response.Message;
-
                 return View();
             }
             catch
