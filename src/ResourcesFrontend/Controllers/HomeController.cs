@@ -4,6 +4,7 @@
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using MszCool.Samples.PodIdentityDemo.GrpcResourceManagement;
     using MszCool.Samples.PodIdentityDemo.ResourcesFrontend.Configuration;
     using MszCool.Samples.PodIdentityDemo.ResourcesFrontend.Models;
     using MszCool.Samples.PodIdentityDemo.ResourcesRepository.Interfaces;
@@ -19,7 +20,7 @@
         private readonly IResourcesRepo _resourcesRepo;
         private readonly IStorageRepo _storageRepo;
         private GrpcGreeter.GreeterService.GreeterServiceClient _grpcGreeterClient;
-        private ResourcesRepository.GrpcResourceManagement.ResourcesService.ResourcesServiceClient _grpcResourcesBackend;
+        private ResourcesService.ResourcesServiceClient _grpcResourcesBackend;
 
         public HomeController(
             ILogger<HomeController> logger,
@@ -27,7 +28,7 @@
             IResourcesRepo resourcesRepo,
             IStorageRepo storageRepo,
             GrpcGreeter.GreeterService.GreeterServiceClient grpcGreeterClient,
-            ResourcesRepository.GrpcResourceManagement.ResourcesService.ResourcesServiceClient grpcResourcesBackend)
+            ResourcesService.ResourcesServiceClient grpcResourcesBackend)
         {
             _logger = logger;
             _frontendSettings = resourcesSettings.Value;
@@ -132,21 +133,21 @@
                     // has reader permissions, only (which should be the case), only by calling the privileged backend service
                     // the resource creation operations should succeed.
 #pragma warning disable CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
-                    var requestMessage = new ResourcesRepository.GrpcResourceManagement.ResourceCreationRequest
+                    var requestMessage = new ResourceCreationRequest
                     {
                         Name = creationInfo.ResourceName,
                         Location = creationInfo.Location,
                         Sku = creationInfo.ResourceSku switch   // This here caused CS8524 - probably a compiler bug?
                         {
-                            ResourcesRepository.Sku.Basic => ResourcesRepository.GrpcResourceManagement.SupportedSkus.Basic,
-                            ResourcesRepository.Sku.Standard => ResourcesRepository.GrpcResourceManagement.SupportedSkus.Standard,
-                            ResourcesRepository.Sku.Premium => ResourcesRepository.GrpcResourceManagement.SupportedSkus.Premium
+                            ResourcesRepository.Sku.Basic => SupportedSkus.Basic,
+                            ResourcesRepository.Sku.Standard => SupportedSkus.Standard,
+                            ResourcesRepository.Sku.Premium => SupportedSkus.Premium
                         },
                         ResType = creationInfo.FriendlyType switch
                         {
-                            "Datalake" => ResourcesRepository.GrpcResourceManagement.SupportedResourceTypes.Datalake,
-                            "Blob" => ResourcesRepository.GrpcResourceManagement.SupportedResourceTypes.Storage,
-                            _ => ResourcesRepository.GrpcResourceManagement.SupportedResourceTypes.Generic
+                            "Datalake" => SupportedResourceTypes.Datalake,
+                            "Blob" => SupportedResourceTypes.Storage,
+                            _ => SupportedResourceTypes.Generic
                         }
                     };
 #pragma warning restore CS8524

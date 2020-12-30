@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace="MszCool.Samples.PodIdentityDemo.ResourcesRepository.GrpcResourceManagement";
+option csharp_namespace="MszCool.Samples.PodIdentityDemo.GrpcResourceManagement";
 option java_package="com.mszcool.samples.samples.akspodidentity.grpcresmanagement";
 option go_package="mszcoolakspodidentitygrpcresourcemanagement";
 
