@@ -12,7 +12,6 @@ services:
       - ASPNETCORE_URLS=https://+:5143
       - FrontendConfig__EndpointsConfig__BackendServiceEndpointUri=https://resourcesbackend:5243/
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/akspodiddevcertwithservicenames.pfx
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=dev_pwd_1
       - DOTNET_SYSTEM_NET_HTTP_USESOCKETSHTTPHANDLER=true
     volumes:
       - ~/.vsdbg:/remote_debugger:rw
@@ -26,7 +25,6 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:5243
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/akspodiddevcertwithservicenames.pfx
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=dev_pwd_1
       - DOTNET_SYSTEM_NET_HTTP_USESOCKETSHTTPHANDLER=true
     volumes:
       - ./src/devcerts:/https:ro
