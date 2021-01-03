@@ -1,0 +1,33 @@
+# Please refer https://aka.ms/HTTPSinContainer on how to setup an https developer certificate for your ASP .NET Core service.
+
+version: '3.4'
+
+services:
+  resourcesfrontend:
+    image: mszcool/samples/akspodidentitynetcore/frontend
+    ports:
+      - 5143:5143
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:5143
+      - FrontendConfig__EndpointsConfig__BackendServiceEndpointUri=https://resourcesbackend:5243/
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/akspodiddevcertwithservicenames.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=dev_pwd_1
+      - DOTNET_SYSTEM_NET_HTTP_USESOCKETSHTTPHANDLER=true
+    volumes:
+      - ~/.vsdbg:/remote_debugger:rw
+      - ./src/devcerts:/https:ro
+      - ~/AppData/Roaming/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+  resourcesbackend:
+    image: mszcool/samples/akspodidentitynetcore/backend
+    ports:
+      - 5243:5243
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:5243
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/akspodiddevcertwithservicenames.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=dev_pwd_1
+      - DOTNET_SYSTEM_NET_HTTP_USESOCKETSHTTPHANDLER=true
+    volumes:
+      - ./src/devcerts:/https:ro
+      - ~/AppData/Roaming/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro

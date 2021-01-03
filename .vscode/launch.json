@@ -5,15 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": ".NET Core Attach",
+            "type": "coreclr",
+            "request": "attach",
+            "processId": "${command:pickProcess}"
+        },
+        {
             "name": "Backend",
             "type": "coreclr",
             "request": "launch",
-            // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/src/ResourcesBackend/bin/Debug/net5.0/MszCool.Samples.PodIdentityDemo.ResourcesBackend.dll",
             "args": [],
             "cwd": "${workspaceFolder}/src/ResourcesBackend",
             "stopAtEntry": false,
-            // Enable launching a web browser when ASP.NET Core starts. For more information: https://aka.ms/VSCode-CS-LaunchJson-WebBrowser
             "serverReadyAction": {
                 "action": "openExternally",
                 "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
@@ -30,22 +34,32 @@
             "args": [],
             "cwd": "${workspaceFolder}/src/ResourcesFrontend",
             "stopAtEntry": false,
-            "serverReadyAction":{
+            "serverReadyAction": {
                 "action": "openExternally",
                 "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
             },
-            "env": {
-
-            },
+            "env": {},
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/src/ResourcesFrontend/Views"
             }
         },
         {
-            "name": ".NET Core Attach",
-            "type": "coreclr",
-            "request": "attach",
-            "processId": "${command:pickProcess}"
+            "name": "Docker .NET Core Launch (Frontend)",
+            "type": "docker",
+            "request": "launch",
+            "preLaunchTask": "docker-run: frontend debug",
+            "netCore": {
+                "appProject": "${workspaceFolder}/src/ResourcesFrontend/ResourcesFrontend.csproj"
+            }
+        },
+        {
+            "name": "Docker .NET Core Launch (Backend)",
+            "type": "docker",
+            "request": "launch",
+            "preLaunchTask": "docker-run: backend debug",
+            "netCore": {
+                "appProject": "${workspaceFolder}/src/ResourcesBackend/ResourcesBackend.csproj"
+            }
         }
     ]
 }

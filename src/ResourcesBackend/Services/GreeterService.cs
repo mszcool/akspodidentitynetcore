@@ -22,7 +22,7 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesBackend
         {
             return Task.FromResult(new GrpcGreeter.HelloResponse
             {
-                Message = $"Hello {request.Name} on {DateTime.Now.ToString("yyyy-mm-dd HH:MM:ss")}!"
+                Message = $"Hello {request.Name} on {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}!"
             });
         }
     }

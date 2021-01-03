@@ -19,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/src/ResourcesBackend/ResourcesBackend.csproj",
+                "${workspaceFolder}/src/AksPodIdTests.sln",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -32,7 +32,7 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/src/ResourcesBackend/ResourcesBackend.csproj",
+                "${workspaceFolder}/src/ResourcesFrontend/ResourcesFrontend.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -95,6 +95,150 @@
                 "panel": "shared",
                 "showReuseMessage": false,
                 "clear": false
+            }
+        },
+        {
+            "type": "docker-build",
+            "label": "docker-build: frontend debug",
+            "dependsOn": [
+                "build"
+            ],
+            "dockerBuild": {
+                "tag": "mszcool/samples/akspodidentitynetcore/frontend:dev",
+                "target": "base",
+                "dockerfile": "${workspaceFolder}/src/ResourcesFrontend/Dockerfile",
+                "context": "${workspaceFolder}",
+                "pull": true
+            },
+            "netCore": {
+                "appProject": "${workspaceFolder}/src/ResourcesFrontend/ResourcesFrontend.csproj"
+            }
+        },
+        {
+            "type": "docker-build",
+            "label": "docker-build: frontend release",
+            "dependsOn": [
+                "build"
+            ],
+            "dockerBuild": {
+                "tag": "mszcool/samples/akspodidentitynetcore/frontend:latest",
+                "dockerfile": "${workspaceFolder}/src/ResourcesFrontend/Dockerfile",
+                "context": "${workspaceFolder}",
+                "pull": true
+            },
+            "netCore": {
+                "appProject": "${workspaceFolder}/src/ResourcesFrontend/ResourcesFrontend.csproj"
+            }
+        },
+        {
+            "type": "docker-run",
+            "label": "docker-run: frontend debug",
+            "dependsOn": [
+                "docker-build: frontend debug"
+            ],
+            "dockerRun": {
+                "containerName": "mszakspodidentityfrontenddev",
+                "ports": [
+                    {
+                        "hostPort": 5143,
+                        "containerPort": 5143
+                    }
+                ]
+            },
+            "netCore": {
+                "appProject": "${workspaceFolder}/src/ResourcesFrontend/ResourcesFrontend.csproj",
+                "enableDebugging": true
+            }
+        },
+        {
+            "type": "docker-run",
+            "label": "docker-run: frontend release",
+            "dependsOn": [
+                "docker-build: frontend release"
+            ],
+            "dockerRun": {
+                "containerName": "mszakspodidentityfrontend",
+                "ports": [
+                    {
+                        "hostPort": 5143,
+                        "containerPort": 5143
+                    }
+                ]
+            },
+            "netCore": {
+                "appProject": "${workspaceFolder}/src/ResourcesFrontend/ResourcesFrontend.csproj"
+            }
+        },
+        {
+            "type": "docker-build",
+            "label": "docker-build: backend debug",
+            "dependsOn": [
+                "build"
+            ],
+            "dockerBuild": {
+                "tag": "mszcool/samples/akspodidentitynetcore/backend:dev",
+                "target": "base",
+                "dockerfile": "${workspaceFolder}/src/ResourcesBackend/Dockerfile",
+                "context": "${workspaceFolder}",
+                "pull": true
+            },
+            "netCore": {
+                "appProject": "${workspaceFolder}/src/ResourcesBackend/ResourcesBackend.csproj"
+            }
+        },
+        {
+            "type": "docker-build",
+            "label": "docker-build: backend release",
+            "dependsOn": [
+                "build"
+            ],
+            "dockerBuild": {
+                "tag": "mszcool/samples/akspodidentitynetcore/backend:latest",
+                "dockerfile": "${workspaceFolder}/src/ResourcesBackend/Dockerfile",
+                "context": "${workspaceFolder}",
+                "pull": true
+            },
+            "netCore": {
+                "appProject": "${workspaceFolder}/src/ResourcesBackend/ResourcesBackend.csproj"
+            }
+        },
+        {
+            "type": "docker-run",
+            "label": "docker-run: backend debug",
+            "dependsOn": [
+                "docker-build: backend debug"
+            ],
+            "dockerRun": {
+                "containerName": "mszakspodidentitybackenddev",
+                "ports": [
+                    {
+                        "hostPort": 5243,
+                        "containerPort": 5243
+                    }
+                ]
+            },
+            "netCore": {
+                "appProject": "${workspaceFolder}/src/ResourcesBackend/ResourcesBackend.csproj",
+                "enableDebugging": true
+            }
+        },
+        {
+            "type": "docker-run",
+            "label": "docker-run: backend release",
+            "dependsOn": [
+                "docker-build: backend release"
+            ],
+            "dockerRun": {
+                "containerName": "mszakspodidentitybackend",
+                "ports": [
+                    {
+                        "hostPort": 5243,
+                        "containerPort": 5243
+                    }
+                ]
+            },
+            "netCore": {
+                "appProject": "${workspaceFolder}/src/ResourcesBackend/ResourcesBackend.csproj"
             }
         }
     ]
