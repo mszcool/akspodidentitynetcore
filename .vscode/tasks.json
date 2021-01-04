@@ -143,6 +143,22 @@
                         "hostPort": 5143,
                         "containerPort": 5143
                     }
+                ],
+                "volumes": [
+                    {
+                        "localPath": "${workspaceFolder}/src/devcerts",
+                        "containerPath": "/https",
+                        "permissions": "ro"
+                    }
+                ],
+                "env": {
+                    "ASPNETCORE_Kestrel__Certificates__Default__Path": "/https/akspodiddevcertwithservicenames.pfx"
+                },
+                "extraHosts": [
+                    {
+                        "hostname": "resourcesbackend",
+                        "ip": "172.17.0.2"
+                    }
                 ]
             },
             "netCore": {
@@ -162,6 +178,23 @@
                     {
                         "hostPort": 5143,
                         "containerPort": 5143
+                    }
+                ],
+                "volumes": [
+                    {
+                        "localPath": "${workspaceFolder}/src/devcerts",
+                        "containerPath": "/https",
+                        "permissions": "ro"
+                    }
+                ],
+                "env": {
+                    "ASPNETCORE_Kestrel__Certificates__Default__Path": "/https/akspodiddevcertwithservicenames.pfx",
+                    "FrontendConfig__EndpointsConfig__BackendServiceEndpointUri": "https://resourcesbackend:5243/"
+                },
+                "extraHosts": [
+                    {
+                        "hostname": "resourcesbackend",
+                        "ip": "172.17.0.2"
                     }
                 ]
             },
@@ -215,7 +248,17 @@
                         "hostPort": 5243,
                         "containerPort": 5243
                     }
-                ]
+                ],
+                "volumes": [
+                    {
+                        "localPath": "${workspaceFolder}/src/devcerts",
+                        "containerPath": "/https",
+                        "permissions": "ro"
+                    }
+                ],
+                "env": {
+                    "ASPNETCORE_Kestrel__Certificates__Default__Path": "/https/akspodiddevcertwithservicenames.pfx"
+                }
             },
             "netCore": {
                 "appProject": "${workspaceFolder}/src/ResourcesBackend/ResourcesBackend.csproj",
@@ -235,7 +278,17 @@
                         "hostPort": 5243,
                         "containerPort": 5243
                     }
-                ]
+                ],
+                "volumes": [
+                    {
+                        "localPath": "${workspaceFolder}/src/devcerts",
+                        "containerPath": "/https",
+                        "permissions": "ro"
+                    }
+                ],
+                "env": {
+                    "ASPNETCORE_Kestrel__Certificates__Default__Path": "/https/akspodiddevcertwithservicenames.pfx"
+                }
             },
             "netCore": {
                 "appProject": "${workspaceFolder}/src/ResourcesBackend/ResourcesBackend.csproj"
