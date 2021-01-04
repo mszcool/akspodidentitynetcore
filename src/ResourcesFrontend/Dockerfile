@@ -2,10 +2,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS base
 WORKDIR /app
 EXPOSE 5143
 ENV ASPNETCORE_URLS=https://+:5143
-# For testing with docker-compose, trust the self-signed developer certificate
-# TODO: refactor this to copy the file through a script running at the entry point so it
-#       can be taken from a k8s configmap / secret in production.
-ADD ["src/devcerts/akspodiddevcertwithservicenames.crt", "/etc/ssl/certs/akspodiddevcertwithservicenames.crt"]
 
 #
 # Build stage
@@ -30,5 +26,7 @@ RUN dotnet publish "ResourcesFrontend.csproj" -c Release -o /app/publish
 #
 FROM base AS final
 WORKDIR /app
+COPY ["src/ResourcesFrontend/startapp.sh", "."]
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "MszCool.Samples.PodIdentityDemo.ResourcesFrontend.dll"]
+#ENTRYPOINT ["dotnet", "MszCool.Samples.PodIdentityDemo.ResourcesFrontend.dll"]
+ENTRYPOINT [ "./startapp.sh" ]
