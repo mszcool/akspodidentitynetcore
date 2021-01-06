@@ -57,6 +57,18 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+
+#
+# During preview, the feature needs to be enabled
+#
+printf "\r\nEnabling PodIdentity Feature on AKS Cluster (needed for preview)...\r\n"
+printf "=======================================================================\r\n"
+
+az feature register --name EnablePodIdentityPreview --namespace Microsoft.ContainerService
+az provider register -n Microsoft.ContainerService
+az aks update --enable-pod-identity --name $aksName --resource-group $rgName
+
+
 #
 # Enable Pod Identity on the AKS cluster
 #

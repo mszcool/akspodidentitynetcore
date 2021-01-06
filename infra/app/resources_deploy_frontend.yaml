@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: msz-resourcessample-frontend
+  labels:
+    app: resourcesfrontend-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resourcesfrontend-pod
+  template:
+    metadata:
+      labels:
+        app: resourcesfrontend-pod
+        aadpodidbinding: mszpodidsregularid
+    spec:
+      containers:
+      - name: resourcesfrontend
+        image: marioszpacrdev.azurecr.io/mszcool/samples/akspodidentitynetcore/frontend
+        ports:
+        - containerPort: 5143
+        resources:
+          requests:
+            cpu: "1000m"
+            memory: "1024Mi"
+          limits:
+            cpu: "2000m"
+            memory: "1536Mi"
+        env:
+          - name: FrontendConfig__EndpointsConfig__BackendServiceEndpointUri
+            valueFrom:
+              configMapKeyRef:
+                name: msz-resourcessample-config
+                key: Resources_BackendServiceEndpointUri
+          - name: FrontendConfig__ResourcesConfig__SubscriptionId
+            valueFrom:
+              configMapKeyRef:
+                name: msz-resourcessample-config
+                key: Resources_SubscriptionId
+          - name: FrontendConfig__ResourcesConfig__ResourceGroupName
+            valueFrom:
+              configMapKeyRef:
+                name: msz-resourcessample-config
+                key: Resources_ResourceGroupName
+          - name: FrontendConfig__SecurityConfig__UseMSI
+            valueFrom:
+              configMapKeyRef:
+                name: msz-resourcessample-config
+                key: Resources_UseMSI
+          - name: ASPNETCORE_Kestrel__Certificates__Default__Path
+            value: /https/akspodiddevcertwithservicenames.pfx
+          - name: ASPNETCORE_Kestrel__Certificates__Default__Password
+            valueFrom:
+              secretKeyRef:
+                name: msz-resourcessample-secrets
+                key: certpwd
+          - name: Logging__LogLevel__Default
+            valueFrom:
+              configMapKeyRef:
+                name: msz-resourcessample-config
+                key: Logging_LogLevel_Default
+          - name: Logging__LogLevel__Microsoft
+            valueFrom:
+              configMapKeyRef:
+                name: msz-resourcessample-config
+                key: Logging_LogLevel_Microsoft
+        volumeMounts:
+        - name: httpsvolume
+          mountPath: "/https"
+          readOnly: true
+
+      volumes:
+      - name: httpsvolume
+        secret:
+          secretName: msz-resourcessample-secrets
+          items:
+          - key: certpfx
+            path: akspodiddevcertwithservicenames.pfx
+          - key: certcrt
+            path: akspodiddevcertwithservicenames.crt
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: msz-resourcessample-frontendservice
+  labels:
+    app: resourcesfrontend-service
+spec:
+  ports:
+  - port: 5143
+    targetPort: 5143
+  selector:
+    app: resourcesfrontend-pod
+  type: LoadBalancer

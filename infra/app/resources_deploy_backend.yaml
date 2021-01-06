@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: msz-resourcessample-backend
+  labels:
+    app: resourcesbackend-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resourcesbackend-pod
+  template:
+    metadata:
+      labels:
+        app: resourcesbackend-pod
+        aadpodidbinding: mszpodidsprivilegedid
+    spec:
+      containers:
+      - name: resourcesbackend
+        image: marioszpacrdev.azurecr.io/mszcool/samples/akspodidentitynetcore/backend
+        ports:
+        - containerPort: 5243
+        resources:
+          requests:
+            cpu: "1000m"
+            memory: "1024Mi"
+          limits:
+            cpu: "2000m"
+            memory: "1536Mi"
+        env:
+          - name: BackendConfig__ResourcesConfig__SubscriptionId
+            valueFrom:
+              configMapKeyRef:
+                name: msz-resourcessample-config
+                key: Resources_SubscriptionId
+          - name: BackendConfig__ResourcesConfig__ResourceGroupName
+            valueFrom:
+              configMapKeyRef:
+                name: msz-resourcessample-config
+                key: Resources_ResourceGroupName
+          - name: BackendConfig__SecurityConfig__UseMSI
+            valueFrom:
+              configMapKeyRef:
+                name: msz-resourcessample-config
+                key: Resources_UseMSI
+          - name: ASPNETCORE_Kestrel__Certificates__Default__Path
+            value: /https/akspodiddevcertwithservicenames.pfx
+          - name: ASPNETCORE_Kestrel__Certificates__Default__Password
+            valueFrom:
+              secretKeyRef:
+                name: msz-resourcessample-secrets
+                key: certpwd
+        volumeMounts:
+        - name: httpsvolume
+          mountPath: "/https"
+          readOnly: true
+      volumes:
+      - name: httpsvolume
+        secret:
+          secretName: msz-resourcessample-secrets
+          items:
+          - key: certpfx
+            path: akspodiddevcertwithservicenames.pfx
+          - key: certcrt
+            path: akspodiddevcertwithservicenames.crt
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: msz-resourcessample-backendservice
+  labels:
+    app: resourcesbackend-service
+spec:
+  ports:
+  - port: 5243
+  selector:
+    app: resourcesbackend-pod
+  type: ClusterIP

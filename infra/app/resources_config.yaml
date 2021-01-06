@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: msz-resourcessample-config
+data:
+  DotNet_UseSocketSystemHandler: "true"
+  AspNetCore_Certificates_Path: "/https/akspodiddevcertwithservicenames.pfx"
+  Logging_LogLevel_Default: "Trace"
+  Logging_LogLevel_Microsoft: "Warning"
+  Resources_BackendServiceEndpointUri: "https://msz-resourcessample-backendservice:5243/"
+  Resources_SubscriptionId: "YOUR_SUBSCRIPTION_ID"
+  Resources_ResourceGroupName: "YOUR_RESOURCE_GROUP"
+  Resources_UseMSI: "true"
