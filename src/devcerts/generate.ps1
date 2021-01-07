@@ -24,12 +24,20 @@ Remove-Item -Force akspodiddevcertwithservicenames.*
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -subj "/CN=localhost" -config localhost.conf -keyout akspodiddevcertwithservicenames.key -out akspodiddevcertwithservicenames.crt
 openssl pkcs12 -export -in .\akspodiddevcertwithservicenames.crt -inkey .\akspodiddevcertwithservicenames.key -out .\akspodiddevcertwithservicenames.pfx -passout pass:$devCertPwd
 
-# Convert to base64 for adding to a k8s secret
+#
+# Convert to base64 for adding to a k8s secret and generate test configmaps and secrets manifests for a deployment
+#
 $pfxContent = Get-Content -AsByteStream -Path .\akspodiddevcertwithservicenames.pfx
-[System.Convert]::ToBase64String($pfxContent) | Out-File ..\..\infra\app\akspodiddevcertwithservicenames.pfx.txt
-[System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($devCertPwd)) | Out-File ..\..\infra\app\akspodiddevcertwithservicenames.pwd.txt
+$pfxBase64 = [System.Convert]::ToBase64String($pfxContent)
+$certPwdBase64 = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($devCertPwd))
 $crtContent = Get-Content -AsByteStream -Path .\akspodiddevcertwithservicenames.crt
-[System.Convert]::ToBase64String($crtContent) | Out-File ..\..\infra\app\akspodiddevcertwithservicenames.crt.txt
+$crtBase64 = [System.Convert]::ToBase64String($crtContent)
+
+$secretsContent = Get-Content -Path ..\..\infra\app\resources_configsecrets.yaml
+$secretsTestContent = $secretsContent.Replace("BASE64CERTPWD", $certPwdBase64)
+$secretsTestContent = $secretsTestContent.Replace("BASE64CERTPFX", $pfxBase64)
+$secretsTestContent = $secretsTestContent.Replace("BASE64CERTCRT", $crtBase64)
+Out-File -InputObject $secretsTestContent -FilePath ..\..\infra\app\resources_configsecrets.test.yaml
 
 # Note: for this to work, the extension
 #       1.3.6.1.4.1.311.84.1.1 = ASN1:INTEGER:02 needs to be part of the certificate generated with openssl.
