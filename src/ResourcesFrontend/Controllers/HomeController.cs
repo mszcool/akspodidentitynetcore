@@ -179,6 +179,12 @@
                         };
     #pragma warning restore CS8524
 
+                        // If this is supposed to be an ADLS account, pass in folder- and file-name to the gRPC service.
+                        if(requestMessage.ResType == SupportedResourceTypes.Datalake)
+                        {
+                            requestMessage.Props.Add(creationInfo.ResourcePropertiesForCreation);
+                        }
+
                         // Call the service for the resource creation request
                         _logger.LogInformation($"Trying to call gRPC backend service on {_frontendSettings.EndpointsConfig.BackendServiceEndpointUri}...");
                         var response = await _grpcResourcesBackend.CreateStorageAsync(requestMessage);
