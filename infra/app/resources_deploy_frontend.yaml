@@ -83,12 +83,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: msz-resourcessample-frontendservice
+  name: resourcesfrontend
   labels:
     app: resourcesfrontend-service
 spec:
   ports:
-  - port: 5143
+  - port: 443
     targetPort: 5143
   selector:
     app: resourcesfrontend-pod
