@@ -13,7 +13,7 @@ spec:
     metadata:
       labels:
         app: resourcesbackend-pod
-        aadpodidbinding: mszpodidsprivilegedid
+        aadpodidbinding: mszpodid-privileged
     spec:
       containers:
       - name: resourcesbackend

@@ -59,17 +59,6 @@ fi
 
 
 #
-# During preview, the feature needs to be enabled
-#
-#printf "\r\nEnabling PodIdentity Feature on AKS Cluster (needed for preview)...\r\n"
-#printf "=======================================================================\r\n"
-#
-#az feature register --name EnablePodIdentityPreview --namespace Microsoft.ContainerService
-#az provider register -n Microsoft.ContainerService
-#az aks update --enable-pod-identity --name $aksName --resource-group $rgName
-
-
-#
 # Enable Pod Identity on the AKS cluster
 #
 printf "\r\nInstalling AAD Pod Identity...\r\n"
@@ -86,10 +75,10 @@ printf "\r\nCreating managed identities...\r\n"
 printf "==============================\r\n"
 
 regularIdentityName="${namePref}RegularId"
-az identity create --name "$regularIdentityName" --resource-group "$rgName"
+az identity create --name "$regularIdentityName" --resource-group "$rgName" --out json
 
 privilegedIdentityName="${namePref}PrivilegedId"
-az identity create --name "$privilegedIdentityName" --resource-group "$rgName"
+az identity create --name "$privilegedIdentityName" --resource-group "$rgName" --out json
 
 # It can take a while for identities to replicate
 sleep 20
@@ -104,7 +93,7 @@ printf "================================================\r\n"
 regularIdentityClientId="$(az identity show --name "$regularIdentityName" --resource-group "$rgName" --query "clientId" -otsv)"
 regularIdentityResourceId="$(az identity show --name "$regularIdentityName" --resource-group "$rgName" --query "id" -otsv)"
 # This identity will have read access to the resource group so it can list but not create/modify resources in it
-regularIdReaderAssignment=$(az role assignment create --role Reader --assignee $regularIdentityClientId --scope "$rgId")
+az role assignment create --role Reader --assignee $regularIdentityClientId --scope "$rgId" --out jsonc
 
 
 #
@@ -116,7 +105,17 @@ printf "===================================================\r\n"
 privilegedIdentityClientId="$(az identity show --name "$privilegedIdentityName" --resource-group "$rgName" --query "clientId" -otsv)"
 privilegedIdentityResourceId="$(az identity show --name "$privilegedIdentityName" --resource-group "$rgName" --query "id" -otsv)"
 # This identity will have contributor rights to the resource group so that it can create and read resources in the resource group
-privilegedIdContributorAssignment=$(az role assignment create --role Contributor --assignee $privilegedIdentityClientId --scope "$rgId")
+az role assignment create --role Contributor --assignee $privilegedIdentityClientId --scope "$rgId" --out jsonc
+
+
+#
+# The AKS Service Principal needs to have permissions on the created user assigned managed identities to enable PodIdentity in the cluster
+#
+printf "\r\nAssigning permissions to the AKS SP to use the identities...\r\n"
+printf "============================================================\r\n"
+
+aksServicePrincipalId=$(az aks show --name $aksName --resource-group $rgName --query "servicePrincipalProfile.clientId" --out tsv)
+az role assignment create --role "Managed Identity Operator" --assignee $aksServicePrincipalId --scope "$rgId" --out jsonc
 
 
 #
@@ -137,4 +136,18 @@ cat azIdentity.yaml |
     awk -v n=$privilegedIdentityName '{sub(/IDENTITY_NAME/,tolower(n))}1' |
     awk -v n=$privilegedIdentityClientId '{sub(/IDENTITY_CLIENT_ID/,tolower(n))}1' |
     awk -v n=$privilegedIdentityResourceId '{sub(/IDENTITY_RESOURCE_ID/,tolower(n))}1' |
+    kubectl apply -f -
+
+# Create the identity binding that binds the identity to a selector used in pod-labels for the regular identity
+# The selector matches the label used in the pod/deployment manifests, hence changing the identity name does not impact those manifests
+cat azIdentityBinding.yaml |
+    awk -v n=$regularIdentityName '{sub(/IDENTITY_NAME/,tolower(n))}1' |
+    awk '{sub(/IDTYPE/,"regular")}1' |
+    kubectl apply -f -
+
+# Create the identity binding that binds the identity to a selector used in pod-labels for the privileged identity
+# The selector matches the label used in the pod/deployment manifests, hence changing the identity name does not impact those manifests
+cat azIdentityBinding.yaml |
+    awk -v n=$privilegedIdentityName '{sub(/IDENTITY_NAME/,tolower(n))}1' |
+    awk '{sub(/IDTYPE/,"privileged")}1' |
     kubectl apply -f -

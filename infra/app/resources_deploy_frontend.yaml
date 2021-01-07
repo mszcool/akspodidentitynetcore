@@ -13,7 +13,7 @@ spec:
     metadata:
       labels:
         app: resourcesfrontend-pod
-        aadpodidbinding: mszpodidsregularid
+        aadpodidbinding: mszpodid-regular
     spec:
       containers:
       - name: resourcesfrontend
