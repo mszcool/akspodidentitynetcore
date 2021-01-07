@@ -1,5 +1,7 @@
 using Microsoft.Azure.Management.ResourceManager.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using System;
@@ -28,6 +30,7 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.Tests
         private List<IGenericResource> resourcesInGroup;
         private Az.IAzure TestAzure;
         private AzureCredentialsFactory credFactory = new AzureCredentialsFactory();
+        private ILoggerFactory loggingBuilder;
 
         #region Test preparation and clean-up
 
@@ -35,6 +38,15 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.Tests
         [TestInitialize]
         public async Task PrepareForTests()
         {
+            // Create a logging factory that's passed into the testee
+            loggingBuilder = LoggerFactory.Create(builder => {
+                builder.AddConsole();
+                builder.AddDebug();
+                builder.AddFilter("Microosft", LogLevel.Warning);
+                builder.AddFilter("System", LogLevel.Warning);
+                builder.AddFilter("Default", LogLevel.Trace);
+            });
+
             // Authentication and Azure RestClient creation
             InitAzureEnvironment();
 
@@ -70,7 +82,7 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.Tests
             // Instantiate the tested calss
             TestContext.WriteLine($"Creating ResourcesRepository for {this.subscriptionId}...");
             var factory = new Testee.RepositoryFactory(this.subscriptionId, this.resourceGroupName);
-            var repoToTest = factory.CreateResourcesRepo();
+            var repoToTest = factory.CreateResourcesRepo(this.loggingBuilder);
             SetTesteeEnvironmentVariables(factory);
 
             // Get the resources in the resource group
@@ -103,7 +115,7 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.Tests
             // Instantiate the tested calss
             TestContext.WriteLine($"Creating ResourcesRepository for {this.subscriptionId}...");
             var factory = new Testee.RepositoryFactory(this.subscriptionId, this.resourceGroupName);
-            var repoToTest = factory.CreateResourcesRepo();
+            var repoToTest = factory.CreateResourcesRepo(this.loggingBuilder);
             SetTesteeEnvironmentVariables(factory);
 
             // Get the resources in the resource group
@@ -132,7 +144,7 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.Tests
             // Instantiate the tested class
             TestContext.WriteLine($"Creating StorageRepository for {this.subscriptionId}...");
             var factory = new Testee.RepositoryFactory(this.subscriptionId, this.resourceGroupName);
-            var repoToTest = factory.CreateStorageRepo();
+            var repoToTest = factory.CreateStorageRepo(this.loggingBuilder);
             SetTesteeEnvironmentVariables(factory);
 
             // Generate a unique name for the storage account
@@ -157,7 +169,7 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.Tests
             // Instantiate the tested class
             TestContext.WriteLine($"Creating ADLS StorageRepository for {this.subscriptionId}...");
             var factory = new Testee.RepositoryFactory(this.subscriptionId, this.resourceGroupName);
-            var repoToTest = factory.CreateStorageRepo();
+            var repoToTest = factory.CreateStorageRepo(this.loggingBuilder);
             SetTesteeEnvironmentVariables(factory);
 
             // Generate a unique name for the storage account

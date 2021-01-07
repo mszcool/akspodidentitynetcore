@@ -4,17 +4,19 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.InternalImplementa
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
+    using Microsoft.Extensions.Logging;
     using MszCool.Samples.PodIdentityDemo.ResourcesRepository.Entities;
     using MszCool.Samples.PodIdentityDemo.ResourcesRepository.Interfaces;
     using System;
     using System.Linq;
-    using System.Diagnostics;
     using System.Threading.Tasks;
     using System.Collections.Generic;
 
     internal class ResourcesRepositoryImpl : IResourcesRepo
     {
         private const string PROVIDER_SECTION = "providers";
+
+        private ILogger<IResourcesRepo> logger;
 
         protected int RetryCount { get; private set; }
         protected int SecondsIncreasePerRetry { get; private set;}
@@ -27,7 +29,7 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.InternalImplementa
         protected string SubscriptionId { get; private set; }
         protected string ResourceGroupName { get; private set; }
 
-        internal ResourcesRepositoryImpl(string subscriptionId, string resourceGroupName, int retryCount, int secondsIncreaseBetweenRetries)
+        internal ResourcesRepositoryImpl(string subscriptionId, string resourceGroupName, int retryCount, int secondsIncreaseBetweenRetries, ILoggerFactory loggerFactory)
         {
             this.SubscriptionId = subscriptionId;
             this.ResourceGroupName = resourceGroupName;
@@ -35,12 +37,14 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.InternalImplementa
             this.RetryCount = retryCount;
             this.SecondsIncreasePerRetry = secondsIncreaseBetweenRetries;
 
-            Trace.TraceInformation($"ResourceRepository(subscriptionId={this.SubscriptionId}, resourceGroupName={this.ResourceGroupName})");
+            this.logger = loggerFactory.CreateLogger<IResourcesRepo>();
+
+            this.logger.LogInformation($"ResourceRepository(subscriptionId={this.SubscriptionId}, resourceGroupName={this.ResourceGroupName})");
         }
 
         public async Task<List<ResourceEntity>> GetAllAsync()
         {
-            Trace.TraceInformation($"ResourcesRepository.GetAll() called for {this.SubscriptionId} and {this.ResourceGroupName}.");
+            this.logger.LogTrace($"ResourcesRepository.GetAll() called for {this.SubscriptionId} and {this.ResourceGroupName}.");
             
             // Ensure an instance of the ResourceManagementClient is available
             ConfigureAzure();
@@ -51,14 +55,14 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.InternalImplementa
                            where this.GetResourceFilter(l)
                            select new ResourceEntity { Id = l.Id, Name = l.Name, Location = l.RegionName, Type = l.Type }).ToList();
             
-            Trace.TraceInformation($"ResourcesRepository.GetAll() returning {results.Count} items!");
+            this.logger.LogTrace($"ResourcesRepository.GetAll() returning {results.Count} items!");
 
             return results;
         }
 
         public async Task<ResourceEntity> GetByIdAsync(string id)
         {
-            Trace.TraceInformation($"ResourcesRepository.GetAll() called for {this.SubscriptionId} and {this.ResourceGroupName} to get resource '{id}'.");
+            this.logger.LogTrace($"ResourcesRepository.GetAll() called for {this.SubscriptionId} and {this.ResourceGroupName} to get resource '{id}'.");
 
             if(string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Missing argument 'id'!");
 
@@ -92,6 +96,9 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.InternalImplementa
                                  { "Product", (res.Plan != null ? res.Plan.Product : "n/a") },
                              }
                          };
+
+            this.logger.LogTrace($"Returning resource details for {retVal.Id}!");
+
             return retVal;
         }
 
@@ -119,7 +126,7 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.InternalImplementa
             }
             else
             {
-                Trace.TraceInformation("ResourcesRepository.ConfigureAzure() instantiating Azure Management Client...");
+                this.logger.LogInformation("ResourcesRepository.ConfigureAzure() instantiating Azure Management Client...");
             }
             
             // Try acquiring a token (requires refactoring, learning new Fluent libraries as lots has changed from last time (a while ago))
@@ -135,17 +142,17 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.InternalImplementa
             }
             else 
             {
-                Trace.TraceInformation($"Incomplete details for service principal in environment (clientId, clientSecret or tenantId misssing), trying managed service identity.");
+                this.logger.LogInformation($"Incomplete details for service principal in environment (clientId, clientSecret or tenantId misssing), trying managed service identity.");
                 try 
                 {
-                    Trace.TraceInformation("ResourceGroupRepository - acquire token from local MSI.");
+                    this.logger.LogInformation("ResourceGroupRepository - acquire token from local MSI.");
                     creds = credentialFactory.FromMSI(new MSILoginInformation(MSIResourceType.VirtualMachine),
                                                       AzureEnvironment.AzureGlobalCloud)
                                              .WithDefaultSubscription(this.SubscriptionId);
                 } 
                 catch (MSILoginException msiex)
                 {
-                    Trace.TraceError($"Failed to acquire token for ResourceProviderRepository with managed service identity: {msiex.Message}!");
+                    this.logger.LogError($"Failed to acquire token for ResourceProviderRepository with managed service identity: {msiex.Message}!");
                     throw new Exception("Failed acquiring token!", msiex);
                 }
             }
@@ -156,12 +163,12 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.InternalImplementa
                                   .Authenticate(creds)
                                   .WithSubscription(this.SubscriptionId);
 
-            Trace.TraceInformation("ResourcesRepository.ConfigureAzure() succeeded creating fluent Azure Management Client!");
+            this.logger.LogInformation("ResourcesRepository.ConfigureAzure() succeeded creating fluent Azure Management Client!");
         }
 
         protected async Task AssignPermissions(string scope, string servicePrincipalName, string roleName)
         {
-            Trace.TraceInformation($"Assigning role {roleName} to identity {servicePrincipalName} to scope {scope}...");
+            this.logger.LogTrace($"Assigning role {roleName} to identity {servicePrincipalName} to scope {scope}...");
 
             // Requires the following permissions in RBAC (Contributor is not sufficient)!
             // "actions": [
@@ -177,16 +184,16 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.InternalImplementa
             }
 
             await RetryActionAsync(async () => {
-                Trace.TraceInformation("- Attempt to create role assignment...");
+                this.logger.LogTrace("- Attempt to create role assignment...");
                 var roleAssignmentId = Guid.NewGuid().ToString();
                 await this.AzureMgmt.AccessManagement.RoleAssignments.Define(roleAssignmentId)
                                                                         .ForServicePrincipal(servicePrincipalName)
                                                                         .WithRoleDefinition(roleDefinition.Id)
                                                                         .WithScope(scope)
                                                                         .CreateAsync();
-                Trace.TraceInformation("- Attempt succeeded!");
+                this.logger.LogTrace("- Attempt succeeded!");
             });
-            Trace.TraceInformation($"Permissions created for identity for {scope}...");
+            this.logger.LogInformation($"Assignment of {roleName} created for identity {servicePrincipalName} on {scope}!");
         }
 
         protected async Task RetryActionAsync(Func<Task> a)

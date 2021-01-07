@@ -44,8 +44,14 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesFrontend
                     FrontendConfig.SecurityConfig.ClientSecret,
                     FrontendConfig.SecurityConfig.TenantId);
             }
-            services.AddSingleton<ResourcesRepository.Interfaces.IResourcesRepo>(repoFactory.CreateResourcesRepo());
-            services.AddSingleton<ResourcesRepository.Interfaces.IStorageRepo>(repoFactory.CreateStorageRepo());
+            services.AddSingleton<ResourcesRepository.Interfaces.IResourcesRepo>(f => {
+                var logFac = f.GetService<Microsoft.Extensions.Logging.ILoggerFactory>();
+                return repoFactory.CreateResourcesRepo(logFac);
+            });
+            services.AddSingleton<ResourcesRepository.Interfaces.IStorageRepo>(f => {
+                var logFac = f.GetService<Microsoft.Extensions.Logging.ILoggerFactory>();
+                return repoFactory.CreateStorageRepo(logFac);
+            });
 
             // Add the gRPC ResourcesBackend agent.
             services.AddGrpcClient<GrpcGreeter.GreeterService.GreeterServiceClient>(opt => {

@@ -1,5 +1,6 @@
 ﻿namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository
 {
+    using Microsoft.Extensions.Logging;
     using MszCool.Samples.PodIdentityDemo.ResourcesRepository.Interfaces;
     using MszCool.Samples.PodIdentityDemo.ResourcesRepository.InternalImplementations;
 
@@ -32,14 +33,14 @@
             System.Environment.SetEnvironmentVariable(Constants.TENANT_ID_ENV, tenantId);
         }
 
-        public IResourcesRepo CreateResourcesRepo()
+        public IResourcesRepo CreateResourcesRepo(ILoggerFactory loggerFactory)
         {
-            return new ResourcesRepositoryImpl(this.SubscriptionId, this.ResourceGroupName, RetryCount, SecondsIncreaseBetweenRetries);
+            return new ResourcesRepositoryImpl(this.SubscriptionId, this.ResourceGroupName, RetryCount, SecondsIncreaseBetweenRetries, loggerFactory);
         }
 
-        public IStorageRepo CreateStorageRepo()
+        public IStorageRepo CreateStorageRepo(ILoggerFactory loggerFactory)
         {
-            return new StorageRepositoryImpl(this.SubscriptionId, this.ResourceGroupName, RetryCount, SecondsIncreaseBetweenRetries);
+            return new StorageRepositoryImpl(this.SubscriptionId, this.ResourceGroupName, RetryCount, SecondsIncreaseBetweenRetries, loggerFactory);
         }
     }
 }

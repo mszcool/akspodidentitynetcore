@@ -43,8 +43,14 @@
                     BackendConfig.SecurityConfig.ClientSecret,
                     BackendConfig.SecurityConfig.TenantId);
             }
-            services.AddSingleton<ResourcesRepository.Interfaces.IResourcesRepo>(repoFactory.CreateResourcesRepo());
-            services.AddSingleton<ResourcesRepository.Interfaces.IStorageRepo>(repoFactory.CreateStorageRepo());
+            services.AddSingleton<ResourcesRepository.Interfaces.IResourcesRepo>(f => {
+                var logFac = f.GetService<Microsoft.Extensions.Logging.ILoggerFactory>();
+                return repoFactory.CreateResourcesRepo(logFac);
+            });
+            services.AddSingleton<ResourcesRepository.Interfaces.IStorageRepo>(f => {
+                var logFac = f.GetService<Microsoft.Extensions.Logging.ILoggerFactory>();
+                return repoFactory.CreateStorageRepo(logFac);
+            });
 
             // GRPC Stuff
             services.AddGrpc();
