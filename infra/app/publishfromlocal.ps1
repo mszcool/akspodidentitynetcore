@@ -1,5 +1,5 @@
 Param(
-    [Parmeter(Mandatory=$true)]
+    [Parameter(Mandatory=$true)]
     [String]
     $registryName
 )
@@ -10,8 +10,8 @@ Param(
 
 az acr login --name $registryName
 
-docker tag mszcool/samples/akspodidentitynetcore/frontend:latest $registryName.azurecr.io/mszcool/samples/akspodidentitynetcore/frontend:latest
-docker push $registryName.azurecr.io/mszcool/samples/akspodidentitynetcore/frontend:latest
+docker tag mszcool/samples/akspodidentitynetcore/frontend:latest "${registryName}.azurecr.io/mszcool/samples/akspodidentitynetcore/frontend:latest"
+docker push "$registryName.azurecr.io/mszcool/samples/akspodidentitynetcore/frontend:latest"
 
-docker tag mszcool/samples/akspodidentitynetcore/backend:latest $registryName.azurecr.io/mszcool/samples/akspodidentitynetcore/backend:latest
-docker push $registryName.azurecr.io/mszcool/samples/akspodidentitynetcore/backend:latest
+docker tag mszcool/samples/akspodidentitynetcore/backend:latest "${registryName}.azurecr.io/mszcool/samples/akspodidentitynetcore/backend:latest"
+docker push "$registryName.azurecr.io/mszcool/samples/akspodidentitynetcore/backend:latest"
