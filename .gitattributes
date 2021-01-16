@@ -1,0 +1,6 @@
+#
+# Use LF for all shell, YAML and PowerShell scripts
+#
+*.sh text eol=LF
+*.ps1 text eol=LF
+*.yaml text eol=LF
