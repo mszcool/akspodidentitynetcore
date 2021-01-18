@@ -44,6 +44,9 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesFrontend
                     FrontendConfig.SecurityConfig.ClientSecret,
                     FrontendConfig.SecurityConfig.TenantId);
             }
+            else {
+                repoFactory.ConfigureEnvironment(FrontendConfig.SecurityConfig.TenantId);
+            }
             services.AddSingleton<ResourcesRepository.Interfaces.IResourcesRepo>(f => {
                 var logFac = f.GetService<Microsoft.Extensions.Logging.ILoggerFactory>();
                 return repoFactory.CreateResourcesRepo(logFac);

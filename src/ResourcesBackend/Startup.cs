@@ -43,6 +43,9 @@
                     BackendConfig.SecurityConfig.ClientSecret,
                     BackendConfig.SecurityConfig.TenantId);
             }
+            else {
+                repoFactory.ConfigureEnvironment(BackendConfig.SecurityConfig.TenantId);
+            }
             services.AddSingleton<ResourcesRepository.Interfaces.IResourcesRepo>(f => {
                 var logFac = f.GetService<Microsoft.Extensions.Logging.ILoggerFactory>();
                 return repoFactory.CreateResourcesRepo(logFac);

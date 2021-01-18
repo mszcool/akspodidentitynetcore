@@ -134,8 +134,14 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.InternalImplementa
             this.ClientSecret = Environment.GetEnvironmentVariable(Constants.CLIENT_SECRET_ENV);
             this.TenantId = Environment.GetEnvironmentVariable(Constants.TENANT_ID_ENV);
 
+            // The tenant Id is always required (due to eventual RBAC assignments using Graph library which needs the tenant ID)
+            if(string.IsNullOrWhiteSpace(this.TenantId))
+            {
+                throw new Exception($"Missing configuration for {Constants.TENANT_ID_ENV} which is always required!");
+            }
+
             // If not all details for a service principal are present, try MSI.
-            this.CredentialsUseSp = !(string.IsNullOrWhiteSpace(this.ClientId) || string.IsNullOrWhiteSpace(this.ClientSecret) || string.IsNullOrWhiteSpace(this.TenantId));
+            this.CredentialsUseSp = !(string.IsNullOrWhiteSpace(this.ClientId) || string.IsNullOrWhiteSpace(this.ClientSecret));
             if(this.CredentialsUseSp) 
             {
                 creds = credentialFactory.FromServicePrincipal(this.ClientId, this.ClientSecret, this.TenantId, AzureEnvironment.AzureGlobalCloud);
@@ -147,7 +153,8 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.InternalImplementa
                 {
                     this.logger.LogInformation("ResourceGroupRepository - acquire token from local MSI.");
                     creds = credentialFactory.FromMSI(new MSILoginInformation(MSIResourceType.VirtualMachine),
-                                                      AzureEnvironment.AzureGlobalCloud)
+                                                      AzureEnvironment.AzureGlobalCloud,
+                                                      tenantId: this.TenantId)
                                              .WithDefaultSubscription(this.SubscriptionId);
                 } 
                 catch (MSILoginException msiex)
@@ -187,10 +194,10 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.InternalImplementa
                 this.logger.LogTrace("- Attempt to create role assignment...");
                 var roleAssignmentId = Guid.NewGuid().ToString();
                 await this.AzureMgmt.AccessManagement.RoleAssignments.Define(roleAssignmentId)
-                                                                        .ForServicePrincipal(servicePrincipalName)
-                                                                        .WithRoleDefinition(roleDefinition.Id)
-                                                                        .WithScope(scope)
-                                                                        .CreateAsync();
+                                                                     .ForServicePrincipal(servicePrincipalName)
+                                                                     .WithRoleDefinition(roleDefinition.Id)
+                                                                     .WithScope(scope)
+                                                                     .CreateAsync();
                 this.logger.LogTrace("- Attempt succeeded!");
             });
             this.logger.LogInformation($"Assignment of {roleName} created for identity {servicePrincipalName} on {scope}!");

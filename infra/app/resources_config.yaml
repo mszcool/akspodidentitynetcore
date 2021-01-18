@@ -11,3 +11,6 @@ data:
   Resources_SubscriptionId: "YOUR_SUBSCRIPTION_ID"
   Resources_ResourceGroupName: "YOUR_RESOURCE_GROUP"
   Resources_UseMSI: "true"
+  Resources_TenantId: "YOUR_AAD_TENANTID"
+  Resources_Backend_ClientId: "YOUR_CLIENTID_OF_PRIVILEGED_MANAGED_ID"
+  Resources_Frontend_ClientId: "YOUR_CLIENTID_OF_REGULAR_MANAED_ID"

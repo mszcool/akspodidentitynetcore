@@ -43,6 +43,16 @@ spec:
               configMapKeyRef:
                 name: msz-resourcessample-config
                 key: Resources_UseMSI
+          - name: BackendConfig__SecurityConfig__TenantId
+            valueFrom:
+              configMapKeyRef:
+                name: msz-resourcessample-config
+                key: Resources_TenantId
+          - name: BackendConfig__SecurityConfig__ClientId
+            valueFrom:
+              configMapKeyRef:
+                name: msz-resourcessample-config
+                key: Resources_Backend_ClientId
           - name: ASPNETCORE_Kestrel__Certificates__Default__Path
             value: /https/akspodiddevcertwithservicenames.pfx
           - name: ASPNETCORE_Kestrel__Certificates__Default__Password

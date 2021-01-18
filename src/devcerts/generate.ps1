@@ -49,8 +49,11 @@ dotnet dev-certs https --trust
 #
 if ( $updateSecrets ) {
 
-    Copy-Item -Force ./akspodiddevcertwithservicenames.pfx ~/AppData/Roaming/ASP.NET/Https/MszCool.Samples.PodIdentityDemo.ResourcesFrontend.pfx
-    Copy-Item -Force ./akspodiddevcertwithservicenames.pfx ~/AppData/Roaming/ASP.NET/Https/MszCool.Samples.PodIdentityDemo.ResourcesBackend.pfx
+    # Not needed as it maps the path to the generated certificates into the container, anyways.
+    # But in case someone wants to use the same certs when launching with 'F5' or the generated tasks experience, 
+    # this is what can be done (after an initial launch so the directories exist).
+    # Copy-Item -Force ./akspodiddevcertwithservicenames.pfx ~/AppData/Roaming/ASP.NET/Https/MszCool.Samples.PodIdentityDemo.ResourcesFrontend.pfx
+    # Copy-Item -Force ./akspodiddevcertwithservicenames.pfx ~/AppData/Roaming/ASP.NET/Https/MszCool.Samples.PodIdentityDemo.ResourcesBackend.pfx
 
     Set-Location ..\ResourcesBackend
     dotnet user-secrets set Kestrel:Certificates:Default:Password $devCertPwd
