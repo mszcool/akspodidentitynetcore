@@ -50,6 +50,13 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.InternalImplementa
             {
                 try
                 {
+                    // Check if there's quota available
+                    var quotaAvailable = await this.IsStorageQuotaAvailable(location);
+                    if (!quotaAvailable)
+                    {
+                        throw new Exception("Unable to create storage account, quota limit reached!");
+                    }
+
                     // The storage account is needed always AFAIK
                     var accountCreated = await CreateBlobStorageAsync(name, location, storageSku, (typeOfStorage == StorageType.Datalake));
                     // Assign permissions to the data plane
@@ -86,6 +93,30 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.InternalImplementa
         #endregion
 
         #region Private Methods
+
+        private async Task<bool> IsStorageQuotaAvailable(string location)
+        {
+            this.logger.LogInformation($"Checking if quota is available for location {location} in subscription {base.SubscriptionId}...");
+
+            var quotaOkay = false;
+            var subquota = await base.AzureMgmt.StorageAccounts.Manager.Usages.Inner.ListByLocationAsync(location);
+            var subquotaEnumerator = subquota.GetEnumerator();
+            while(subquotaEnumerator.MoveNext())
+            {
+                var quotaFound = subquotaEnumerator.Current;
+                if(quotaFound.CurrentValue < quotaFound.Limit)
+                {
+                    this.logger.LogInformation($"Quota available for {quotaFound.Name.Value} with value {quotaFound.CurrentValue} and limit {quotaFound.Limit}!");
+                    quotaOkay = true;
+                }
+                else
+                {
+                    this.logger.LogWarning($"Quota {quotaFound.Name.Value} reached its limit {quotaFound.Limit}!");
+                }
+            }
+
+            return quotaOkay;
+        }
 
         private async Task<IStorageAccount> CreateBlobStorageAsync(string name, string location, Sku storageSku, bool withHns)
         {
