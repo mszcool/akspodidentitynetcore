@@ -5,10 +5,12 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Az = Microsoft.Azure.Management.Fluent;
 using Testee = MszCool.Samples.PodIdentityDemo.ResourcesRepository;
+using System.Globalization;
 
 namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.Tests
 {
@@ -75,6 +77,27 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.Tests
         #endregion
 
         #region TestMethods
+
+        [TestMethod]
+        public Task GenerateUniqueNamesTest()
+        {
+            int namesToGen = 100000000;
+            var existingNames = new Dictionary<string, int>();
+
+            // Generate 10 million names
+            for(int i = 0; i < namesToGen; i ++)
+            {
+                var name = GenerateUniqueName("msz");
+                existingNames.Add(name, i);
+            }
+
+            // Output the number of names generated
+            TestContext.WriteLine($"Created unique names {existingNames.Keys.Count}...");
+            Assert.AreEqual(namesToGen, existingNames.Keys.Count);
+            
+            // No exception happened, test passed.
+            return Task.CompletedTask;
+        }
 
         [TestMethod]
         public async Task GetAllResourcesInGroupTest()
@@ -276,12 +299,33 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.Tests
         {
             // Thanks to Mads Kristensen's blog :)
             // https://www.madskristensen.net/blog/generate-unique-strings-and-numbers-in-c/
-            var uniqueId = (long)1;
-            foreach (byte b in Guid.NewGuid().ToByteArray())
+            // var uniqueId = (long)1;
+            // foreach (byte b in Guid.NewGuid().ToByteArray())
+            // {
+            //     uniqueId *= ((int)b + 1);
+            // }
+            // var uniqueName = string.Format("{0}{1:x}", prefix, uniqueId - DateTime.Now.Ticks);
+            // return uniqueName;
+
+            var uniqueId = 1L;
+            var ba = new byte[32];
+            using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
             {
-                uniqueId *= ((int)b + 1);
+                rng.GetBytes(ba);
             }
-            var uniqueName = string.Format("{0}{1:x}", prefix, uniqueId - DateTime.Now.Ticks);
+
+            foreach (byte b in ba)
+            {
+                uniqueId *= b + 1;
+            }
+
+            var uniqueName = string.Format(CultureInfo.InvariantCulture, "{0}{1:x}", prefix, uniqueId - DateTime.Now.Ticks);
+
+            if (uniqueName.Length > 24)
+            {
+                uniqueName = uniqueName.Substring(0, 24);
+            }
+
             return uniqueName;
         }
 
