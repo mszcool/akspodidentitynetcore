@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using Az = Microsoft.Azure.Management.Fluent;
 using Testee = MszCool.Samples.PodIdentityDemo.ResourcesRepository;
 using System.Globalization;
+using System.Security.Cryptography;
 
 namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.Tests
 {
@@ -307,26 +308,19 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.Tests
             // var uniqueName = string.Format("{0}{1:x}", prefix, uniqueId - DateTime.Now.Ticks);
             // return uniqueName;
 
-            var uniqueId = 1L;
-            var ba = new byte[32];
-            using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
+            var allowableCharacters = "abcdefghijklmnopqrstuvwxyz0123456789";
+            var bytes = new byte[24 - prefix.Length];
+
+            // Generate a random string.
+            using (var random = RandomNumberGenerator.Create())
             {
-                rng.GetBytes(ba);
+                random.GetBytes(bytes);
             }
 
-            foreach (byte b in ba)
-            {
-                uniqueId *= b + 1;
-            }
-
-            var uniqueName = string.Format(CultureInfo.InvariantCulture, "{0}{1:x}", prefix, uniqueId - DateTime.Now.Ticks);
-
-            if (uniqueName.Length > 24)
-            {
-                uniqueName = uniqueName.Substring(0, 24);
-            }
-
-            return uniqueName;
+            return string.Concat(
+                prefix,
+                new string(bytes.Select(x => allowableCharacters[x % allowableCharacters.Length]).ToArray())
+            );
         }
 
         #endregion
