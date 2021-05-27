@@ -165,51 +165,25 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.Tests
         [TestMethod]
         public async Task CreateStorageAccountTest()
         {
-            // Instantiate the tested class
-            TestContext.WriteLine($"Creating StorageRepository for {this.subscriptionId}...");
-            var factory = new Testee.RepositoryFactory(this.subscriptionId, this.resourceGroupName);
-            var repoToTest = factory.CreateStorageRepo(this.loggingBuilder);
-            SetTesteeEnvironmentVariables(factory);
-
-            // Generate a unique name for the storage account
-            string uniqueName = GenerateUniqueName("mszstbl");
-
-            // Try to create that storage account
-            TestContext.WriteLine($"Trying to create storage account in resource group {this.resourceGroupName}...");
-            await repoToTest.CreateAsync(uniqueName, this.resourceGroup.RegionName, Testee.Interfaces.StorageType.Blob, Testee.Sku.Basic);
-
-            // Try to retrieve the storage account
-            TestContext.WriteLine("Trying to find storage account in resource group {this.resourceGroupName}...");
-            var foundAccount = await TestAzure.StorageAccounts.GetByResourceGroupAsync(this.resourceGroupName, uniqueName);
-            Assert.IsNotNull(foundAccount);
-            Assert.AreEqual(foundAccount.AccountStatuses.Primary.GetValueOrDefault(), Microsoft.Azure.Management.Storage.Fluent.Models.AccountStatus.Available);
-
-            TestContext.WriteLine("Succeeded!");
+            await this.CreateStorageAccountTestImpl(false);
         }
 
         [TestMethod]
         public async Task CreateAdlsStorageAccountTest()
         {
-            // Instantiate the tested class
-            TestContext.WriteLine($"Creating ADLS StorageRepository for {this.subscriptionId}...");
-            var factory = new Testee.RepositoryFactory(this.subscriptionId, this.resourceGroupName);
-            var repoToTest = factory.CreateStorageRepo(this.loggingBuilder);
-            SetTesteeEnvironmentVariables(factory);
+            await this.CreateAdlsStorageAccountTestImpl(false);
+        }
 
-            // Generate a unique name for the storage account
-            var uniqueName = GenerateUniqueName("mszstdl");
+        [TestMethod]
+        public async Task CreateStorageAccountByTemplateTest()
+        {
+            await this.CreateStorageAccountTestImpl(true);
+        }
 
-            // Try to create that storage account
-            TestContext.WriteLine($"Trying to create ADLS storage account in resource group {this.resourceGroupName}...");
-            await repoToTest.CreateAsync(uniqueName, this.resourceGroup.RegionName, Testee.Interfaces.StorageType.Datalake, Testee.Sku.Standard, "http://azure-cli-2020-12-05-20-10-11");
-
-            // Try to retrieve the storage account
-            TestContext.WriteLine("Trying to find ADLS storage account in resource group {this.resourceGroupName}...");
-            var foundAccount = await TestAzure.StorageAccounts.GetByResourceGroupAsync(this.resourceGroupName, uniqueName);
-            Assert.IsNotNull(foundAccount);
-            Assert.AreEqual(foundAccount.AccountStatuses.Primary.GetValueOrDefault(), Microsoft.Azure.Management.Storage.Fluent.Models.AccountStatus.Available);
-
-            TestContext.WriteLine("Succeeded!");
+        [TestMethod]
+        public async Task CreateAdlsStorageAccountByTemplateTest()
+        {
+            await this.CreateAdlsStorageAccountTestImpl(true);
         }
 
         #endregion
@@ -323,6 +297,58 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.Tests
             );
         }
 
+        #endregion
+
+        #region Private Test Implementation Helpers
+
+        public async Task CreateStorageAccountTestImpl(bool useTemplateStrategy)
+        {
+            // Instantiate the tested class
+            TestContext.WriteLine($"Creating StorageRepository for {this.subscriptionId}...");
+            var factory = new Testee.RepositoryFactory(this.subscriptionId, this.resourceGroupName);
+            var repoToTest = factory.CreateStorageRepo(this.loggingBuilder, useTemplateStrategy);
+            SetTesteeEnvironmentVariables(factory);
+
+            // Generate a unique name for the storage account
+            string uniqueName = GenerateUniqueName("mszstbl");
+
+            // Try to create that storage account
+            TestContext.WriteLine($"Trying to create storage account in resource group {this.resourceGroupName}...");
+            await repoToTest.CreateAsync(uniqueName, this.resourceGroup.RegionName, Testee.Interfaces.StorageType.Blob, Testee.Sku.Basic);
+
+            // Try to retrieve the storage account
+            TestContext.WriteLine("Trying to find storage account in resource group {this.resourceGroupName}...");
+            var foundAccount = await TestAzure.StorageAccounts.GetByResourceGroupAsync(this.resourceGroupName, uniqueName);
+            Assert.IsNotNull(foundAccount);
+            Assert.AreEqual(foundAccount.AccountStatuses.Primary.GetValueOrDefault(), Microsoft.Azure.Management.Storage.Fluent.Models.AccountStatus.Available);
+
+            TestContext.WriteLine("Succeeded!");
+        }
+
+        public async Task CreateAdlsStorageAccountTestImpl(bool useTemplateStrategy)
+        {
+            // Instantiate the tested class
+            TestContext.WriteLine($"Creating ADLS StorageRepository for {this.subscriptionId}...");
+            var factory = new Testee.RepositoryFactory(this.subscriptionId, this.resourceGroupName);
+            var repoToTest = factory.CreateStorageRepo(this.loggingBuilder, useTemplateStrategy);
+            SetTesteeEnvironmentVariables(factory);
+
+            // Generate a unique name for the storage account
+            var uniqueName = GenerateUniqueName("mszstdl");
+
+            // Try to create that storage account
+            TestContext.WriteLine($"Trying to create ADLS storage account in resource group {this.resourceGroupName}...");
+            await repoToTest.CreateAsync(uniqueName, this.resourceGroup.RegionName, Testee.Interfaces.StorageType.Datalake, Testee.Sku.Standard, "http://azure-cli-2020-12-05-20-10-11");
+
+            // Try to retrieve the storage account
+            TestContext.WriteLine("Trying to find ADLS storage account in resource group {this.resourceGroupName}...");
+            var foundAccount = await TestAzure.StorageAccounts.GetByResourceGroupAsync(this.resourceGroupName, uniqueName);
+            Assert.IsNotNull(foundAccount);
+            Assert.AreEqual(foundAccount.AccountStatuses.Primary.GetValueOrDefault(), Microsoft.Azure.Management.Storage.Fluent.Models.AccountStatus.Available);
+
+            TestContext.WriteLine("Succeeded!");
+        }
+        
         #endregion
     }
 }

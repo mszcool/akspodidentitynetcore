@@ -53,7 +53,7 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesFrontend
             });
             services.AddSingleton<ResourcesRepository.Interfaces.IStorageRepo>(f => {
                 var logFac = f.GetService<Microsoft.Extensions.Logging.ILoggerFactory>();
-                return repoFactory.CreateStorageRepo(logFac);
+                return repoFactory.CreateStorageRepo(logFac, false);
             });
 
             // Add the gRPC ResourcesBackend agent.

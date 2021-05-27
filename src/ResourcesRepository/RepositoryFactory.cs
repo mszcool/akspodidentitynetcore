@@ -43,9 +43,16 @@
             return new ResourcesRepositoryImpl(this.SubscriptionId, this.ResourceGroupName, RetryCount, SecondsIncreaseBetweenRetries, loggerFactory);
         }
 
-        public IStorageRepo CreateStorageRepo(ILoggerFactory loggerFactory)
+        public IStorageRepo CreateStorageRepo(ILoggerFactory loggerFactory, bool useTemplateStrategy)
         {
-            return new StorageRepositoryImpl(this.SubscriptionId, this.ResourceGroupName, RetryCount, SecondsIncreaseBetweenRetries, loggerFactory);
+            if(useTemplateStrategy)
+            {
+                return new StorageByTemplateRepositoryImpl(this.SubscriptionId, this.ResourceGroupName, RetryCount, SecondsIncreaseBetweenRetries, loggerFactory);
+            }
+            else
+            {
+                return new StorageRepositoryImpl(this.SubscriptionId, this.ResourceGroupName, RetryCount, SecondsIncreaseBetweenRetries, loggerFactory);
+            }
         }
     }
 }

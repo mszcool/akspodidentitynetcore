@@ -8,14 +8,20 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.InternalImplementa
     using MszCool.Samples.PodIdentityDemo.ResourcesRepository.Interfaces;
     using System;
     using System.Threading.Tasks;
+    using System.IO;
 
-    internal class StorageRepositoryImpl : ResourcesRepositoryImpl, IStorageRepo
+    internal class StorageByTemplateRepositoryImpl : ResourcesRepositoryImpl, IStorageRepo
     {
         protected const string STORAGE_DATA_OWNER_ROLE = "Storage Blob Data Owner";
+        protected const string ARM_TEMPLATE_STORAGE_NAME = "MszCool.Samples.PodIdentityDemo.ResourcesRepository.Impl.Resources.arm.storage.json";
+        protected const string ARM_TOKEN_NAME = "__NAME__";
+        protected const string ARM_TOKEN_LOCATION = "__LOCATION__";
+        protected const string ARM_TOKEN_SKU_NAME = "__SKU_NAME__";
+        protected const string ARM_TOKEN_HNS_ENABLED = "__HNS_ENABLED__";
 
         private ILogger<IStorageRepo> logger;
 
-        public StorageRepositoryImpl(string subscriptionId, string resourceGroupName, int retryCount, int secondsIncreaseBetweenRetries, ILoggerFactory loggerFactory)
+        public StorageByTemplateRepositoryImpl(string subscriptionId, string resourceGroupName, int retryCount, int secondsIncreaseBetweenRetries, ILoggerFactory loggerFactory)
         : base(subscriptionId, resourceGroupName, retryCount, secondsIncreaseBetweenRetries, loggerFactory)
         {
             this.logger = loggerFactory.CreateLogger<IStorageRepo>();
@@ -122,30 +128,57 @@ namespace MszCool.Samples.PodIdentityDemo.ResourcesRepository.InternalImplementa
         {
             this.logger.LogTrace($"Creating storage account {name} in location {location}...");
 
-            var sku = StorageAccountSkuType.Standard_LRS;
+            // Evaluate the SKU.
+            var sku = "Standard_LRS";
             switch (storageSku)
             {
                 case Sku.Basic:
                     break;
                 case Sku.Standard:
-                    sku = StorageAccountSkuType.Standard_ZRS;
+                    sku = "Standard_ZRS";
                     break;
                 case Sku.Premium:
-                    sku = StorageAccountSkuType.Standard_RAGRS;
+                    sku = "Standard_RAGZRS";
                     break;
             }
-            
-            // Create the storage account
-            var accountDef = base.AzureMgmt.StorageAccounts.Define(name)
-                                                           .WithRegion(location)
-                                                           .WithExistingResourceGroup(base.ResourceGroupName)
-                                                           .WithGeneralPurposeAccountKindV2()
-                                                           .WithSku(sku)
-                                                           .WithHnsEnabled(withHns);
 
-            // Create the account, trace the success message and return it.
-            var accountCreated = await accountDef.CreateAsync();
+            // First read the embedded ARM Template.
+            this.logger.LogTrace($"Retrieving ARM template {ARM_TEMPLATE_STORAGE_NAME} from embedded resources...");
+            var asm = System.Reflection.Assembly.GetExecutingAssembly();
+            using var armStream = new StreamReader(asm.GetManifestResourceStream(ARM_TEMPLATE_STORAGE_NAME));
+            var armTemplate = armStream.ReadToEnd();
+
+            // Now replace the tokens in the ARM Template.
+            armTemplate = armTemplate.Replace(ARM_TOKEN_NAME, name);
+            armTemplate = armTemplate.Replace(ARM_TOKEN_LOCATION, location);
+            armTemplate = armTemplate.Replace(ARM_TOKEN_SKU_NAME, sku);
+            armTemplate = armTemplate.Replace(ARM_TOKEN_HNS_ENABLED, withHns.ToString());
+
+            // Next, let's perform the template deployment.
+            var deploymentName = $"deploy_{name}";
+            this.logger.LogTrace($"Starting deployment with name {deploymentName}...");
+            var deployment = await this.AzureMgmt.Deployments.Define(deploymentName)
+                                                             .WithExistingResourceGroup(this.ResourceGroupName)
+                                                             .WithTemplate(armTemplate)
+                                                             .WithParameters("{}")
+                                                             .WithMode(Microsoft.Azure.Management.ResourceManager.Fluent.Models.DeploymentMode.Incremental)
+                                                             .BeginCreateAsync();
+
+            // Wait for the deployment to complete.
+            while (!(StringComparer.InvariantCultureIgnoreCase.Equals(deployment.ProvisioningState, "Succeeded")
+                   || StringComparer.InvariantCultureIgnoreCase.Equals(deployment.ProvisioningState, "Failed")
+                   || StringComparer.InvariantCultureIgnoreCase.Equals(deployment.ProvisioningState, "Cancelled")))
+            {
+                this.logger.LogTrace($"Waiting for deployment {deploymentName} to complete...");
+                SdkContext.DelayProvider.Delay(10000);
+                deployment = await this.AzureMgmt.Deployments.GetByResourceGroupAsync(this.ResourceGroupName, deploymentName);
+            }
+
+            // Get the created storage account.
+            var accountCreated = this.AzureMgmt.StorageAccounts.GetByResourceGroup(this.ResourceGroupName, name);
+
             this.logger.LogTrace($"Storage account submitted for {name}!");
+            await Task.Delay(10);
             return accountCreated;
         }
 
